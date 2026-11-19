@@ -69,7 +69,7 @@ function Dashboard() {
             <div className="panel flex h-40 items-end gap-3 px-5 pb-4 pt-6">
               {week.map((w) => (
                 <div key={w.d} className="flex flex-1 flex-col items-center gap-2">
-                  <div className="relative flex w-full max-w-10 flex-1 items-end">
+                  <div className="relative flex h-24 w-full max-w-10 items-end">
                     <div className="absolute bottom-0 w-full rounded-sm bg-muted" style={{ height: `${(w.planned / maxWeek) * 100}%` }} />
                     <div className="relative w-full rounded-sm bg-primary" style={{ height: `${(Math.min(w.done, w.planned || w.done) / maxWeek) * 100}%` }} />
                   </div>

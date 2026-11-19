@@ -18,7 +18,10 @@ const NAV = [
 ] as const;
 
 export function AppShell({ children }: { children: ReactNode }) {
-  const hydrated = useStore((s) => s.hydrated);
+  const [hydrated, setHydrated] = useState(false);
+  useEffect(() => {
+    void Promise.resolve(useStore.persist.rehydrate()).finally(() => setHydrated(true));
+  }, []);
   const profile = useStore((s) => s.profile);
   const theme = useStore((s) => s.theme);
   const { pathname } = useLocation();
