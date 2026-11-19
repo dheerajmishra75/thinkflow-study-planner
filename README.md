@@ -1,590 +1,536 @@
-# ThinkFlow Study Planner
+# ThinkFlow AI 📚
 
-# THINKFLOW AI — AI-POWERED STUDY PLANNER
+### AI-Powered Personalized Study Planner
 
-Build a complete, modern, intelligent AI Study Planner called **ThinkFlow AI**.
+**Plan smarter. Study consistently. Improve continuously.**
 
-The product is designed for college students who want to manage their academic studies, prepare for examinations, complete their syllabus on time, and improve their problem-solving skills.
+ThinkFlow AI is an intelligent study planning platform designed to help students organize their academic preparation, manage their syllabus, prepare for examinations, and improve their learning consistency.
 
-This is a STUDY PLANNER first. Do not turn it into a generic productivity SaaS, coding platform, LMS, or chatbot application.
+Unlike traditional study planners that only manage tasks and deadlines, ThinkFlow AI uses AI and Machine Learning to understand student progress, recommend study priorities, generate personalized schedules, and adapt future plans based on learning behavior.
 
-The central workflow is:
+The goal is simple: help students study the right topics at the right time without feeling overwhelmed.
+
+---
+
+## ✨ Core Philosophy
 
 **INPUT GOALS → ANALYZE SYLLABUS → GENERATE PLAN → STUDY → TRACK PROGRESS → ADAPT PLAN**
 
-The application should feel like a professionally designed software product, not a typical AI-generated website.
+ThinkFlow AI acts as a personal academic planning assistant that continuously improves a student's study routine.
 
-# 1. DESIGN AND USER EXPERIENCE
+---
 
-Create a sophisticated, minimal, premium interface.
+## 🚀 Key Features
 
-Design inspiration:
-- Linear
-- Notion Calendar
-- Sunsama
-- Things 3
-- Motion
+### 1. 🤖 AI-Powered Study Planning
 
-Do not copy these products. Use their design discipline as inspiration.
+- Generate personalized daily and weekly study schedules.
+- Analyze subjects, chapters, and topics.
+- Prioritize topics based on difficulty and examination deadlines.
+- Allocate study sessions according to available time.
+- Generate realistic and achievable study plans.
+- Automatically suggest schedule adjustments.
 
-Visual direction:
-- Warm off-white background.
-- Deep charcoal text.
-- Forest green accent.
-- Muted orange secondary accent.
-- Subtle gray borders.
-- Geist or Inter typography.
-- Generous whitespace.
-- Clean editorial layouts.
-- Minimal icons using Lucide.
-- Smooth, subtle interactions.
+### 2. 📖 Syllabus Management
 
-Avoid:
-- Purple and blue gradients.
-- Neon effects.
-- Excessive rounded cards.
-- Glassmorphism.
-- Glowing elements.
-- Generic AI dashboard layouts.
-- Unnecessary animations.
-- Repetitive statistic cards.
+- Add and manage multiple subjects.
+- Organize subjects into chapters and topics.
+- Upload syllabus documents in PDF format.
+- Extract chapters and topics using AI.
+- Track topic-wise completion.
+- Set topic difficulty and estimated study duration.
+- Monitor overall syllabus completion.
 
-Support light and dark themes.
+### 3. 🔄 Adaptive Scheduling
 
-The interface must be responsive and polished on desktop, tablet, and mobile.
+ThinkFlow AI adjusts study recommendations according to actual student progress.
 
-# 2. APPLICATION NAVIGATION
+Examples:
 
-Create these main pages:
+- Missed a study session? Get a rescheduling recommendation.
+- Struggling with a subject? Allocate additional revision time.
+- Examination approaching? Prioritize important incomplete topics.
+- Completed topics early? Move forward with the next recommended topic.
 
-1. Dashboard
-2. My Study Plan
-3. Subjects & Syllabus
-4. Calendar
-5. Study Sessions
-6. Progress & Analytics
-7. AI Study Assistant
-8. Profile & Settings
+Schedule changes should remain transparent and allow student approval.
 
-Keep navigation compact and intuitive.
-
-# 3. STUDENT ONBOARDING
-
-When a student registers, guide them through a short onboarding process.
-
-Collect:
-
-- Name.
-- College.
-- Degree and branch.
-- Academic year.
-- Semester.
-- Subjects.
-- Subject difficulty.
-- Exam dates.
-- Available study hours per day.
-- Preferred study time.
-- Daily study capacity.
-- Learning goals.
-- Current preparation level.
-
-Allow the student to enter subjects and topics manually.
-
-Also allow syllabus import through PDF or text.
-
-After onboarding, AI should analyze the information and generate a personalized study plan.
-
-# 4. AI STUDY PLANNER
-
-This is the heart of the application.
-
-Build an intelligent planning engine that creates realistic daily and weekly schedules.
-
-The planner must consider:
-
-- Total syllabus.
-- Number of subjects.
-- Number of chapters and topics.
-- Difficulty of each topic.
-- Student's existing knowledge.
-- Upcoming exam dates.
-- Available study hours.
-- Daily capacity.
-- Topic importance.
-- Previous study performance.
-- Incomplete tasks.
-
-Generate:
+### 4. 📅 Smart Calendar & Planner
 
 - Daily study schedule.
-- Weekly study schedule.
-- Subject-wise study distribution.
-- Topic-wise learning sequence.
-- Revision schedule.
-- Practice sessions.
-- Buffer time before exams.
-
-Each planned session must include:
-
-- Subject.
-- Topic.
-- Task description.
-- Estimated duration.
-- Priority.
-- Study type.
-- Scheduled date and time.
-- Completion status.
-
-Study types:
-- Learn concepts.
-- Revise.
-- Solve problems.
-- Practice questions.
-- Take a mock test.
-
-Do not generate unrealistic schedules that overload students.
-
-Respect their actual available time.
-
-# 5. ADAPTIVE AI SCHEDULING
-
-The biggest differentiator should be adaptive scheduling.
-
-The AI must continuously improve the study plan based on actual student activity.
-
-Examples:
-
-Scenario 1:
-A student misses today's DBMS study session.
-
-Action:
-- Identify the missed session.
-- Find the next available time.
-- Reschedule without disrupting higher-priority tasks.
-- Recalculate the remaining syllabus workload.
-
-Scenario 2:
-A student struggles with Operating Systems.
-
-Action:
-- Identify the difficult subject.
-- Increase revision frequency.
-- Allocate more practice time.
-- Adjust upcoming study sessions.
-
-Scenario 3:
-An examination is approaching.
-
-Action:
-- Prioritize incomplete and important topics.
-- Reduce unnecessary low-priority activities.
-- Add revision sessions.
-- Create a final preparation schedule.
-
-Scenario 4:
-A student completes topics faster than expected.
-
-Action:
-- Update completion estimates.
-- Use the extra time intelligently.
-- Recommend the next topic.
-
-Provide a visible explanation for every major AI schedule adjustment.
-
-Never silently change a student's entire schedule.
-
-# 6. DASHBOARD
-
-Build a personalized dashboard with a clean, practical layout.
-
-Header:
-"Good morning, [Student Name]"
-
-Subtitle:
-"Here is your learning plan for today."
-
-Main sections:
-
-A. Today's Schedule
-
-Show chronological study sessions.
-
-Each session includes:
-- Subject.
-- Topic.
-- Time.
-- Duration.
-- Priority.
-- Status.
-
-Actions:
-- Start session.
-- Mark complete.
-- Reschedule.
-- Skip.
-- Edit.
-
-B. Daily Progress
-
-Show:
-- Planned study time.
-- Completed study time.
-- Tasks completed.
-- Remaining tasks.
-
-C. AI Daily Recommendation
-
-Example:
-
-"Your DBMS examination is approaching. Complete normalization today and reserve tomorrow for practice and revision."
-
-Show the reason behind the recommendation.
-
-D. Upcoming Examinations
-
-Display exam dates and remaining days.
-
-E. Subject Progress
-
-Show syllabus completion percentage for each subject.
-
-F. Weekly Overview
-
-A compact visual representation of planned versus completed study sessions.
-
-# 7. MY STUDY PLAN
-
-Create a dedicated planning workspace.
-
-Views:
-- Today.
-- This Week.
-- All Tasks.
-
-Allow students to:
-- Add sessions.
-- Edit sessions.
-- Delete sessions.
-- Change priorities.
-- Reschedule tasks.
-- Mark tasks complete.
-- Filter by subject.
-- Filter by status.
-- Search topics.
-
-Provide drag-and-drop scheduling where practical.
-
-Use clear visual indicators for overdue, upcoming, completed, and high-priority tasks.
-
-# 8. SUBJECTS AND SYLLABUS MANAGEMENT
-
-Create a subject management system.
-
-Each subject should contain:
-
-- Subject name.
-- Subject code.
-- Exam date.
-- Total chapters.
-- Topics.
-- Difficulty.
-- Importance.
-- Completion percentage.
-
-Each chapter contains multiple topics.
-
-Each topic has:
-- Learning status.
-- Difficulty.
-- Estimated duration.
-- Actual time spent.
-- Confidence level.
-- Revision history.
-
-Allow:
-- Manual syllabus entry.
-- Chapter creation.
-- Topic creation.
-- PDF syllabus upload.
-- Editing and deletion.
-
-Use AI to extract subjects, chapters, and topics from uploaded syllabus documents.
-
-Ask the student to review extracted information before generating the schedule.
-
-# 9. AI STUDY ASSISTANT
-
-Create a focused AI assistant specifically for study planning.
-
-It should answer requests such as:
-
-- Make a study plan for tomorrow.
-- I have three exams next week. Organize my preparation.
-- I missed two study sessions. Fix my schedule.
-- Which subject should I study today?
-- I have only two hours available today. Optimize my plan.
-- Create a seven-day revision plan.
-- Explain why you prioritized this topic.
-
-It should understand the student's actual subjects, deadlines, available time, and progress.
-
-Do not create a generic chatbot disconnected from the planner.
-
-AI responses should be capable of proposing actual schedule changes, with student approval before applying significant changes.
-
-# 10. STUDY SESSION TRACKER
-
-When a student starts a planned session, open a distraction-free study interface.
-
-Include:
-- Current subject.
-- Current topic.
-- Session objective.
-- Countdown timer.
-- Pause and resume.
-- Complete session.
-- Add notes.
-- Mark session as partially completed.
-
-After completing a session, ask:
-
-1. Did you complete the topic?
-2. How difficult was it?
-3. How confident are you?
-4. Do you need revision?
-
-Save these responses.
-
-Use them to improve future recommendations.
-
-# 11. REVISION MANAGEMENT
-
-Implement intelligent revision scheduling.
-
-Track when a student last studied a topic.
-
-Recommend revision based on:
-- Topic difficulty.
-- Confidence level.
-- Time since last revision.
-- Previous performance.
-- Upcoming examinations.
-
-Use spaced-repetition principles.
-
-Allow students to:
-- Mark a topic for revision.
-- Complete revision.
-- Rate their understanding.
-- View upcoming revision sessions.
-
-# 12. PROGRESS AND ANALYTICS
-
-Create a meaningful analytics page.
-
-Show:
+- Weekly study overview.
+- Calendar-based planning.
+- Subject-wise scheduling.
+- Task priorities.
+- Upcoming examination deadlines.
+- Incomplete task management.
+- Study session rescheduling.
+
+### 5. ⏱️ Study Session Tracker
+
+- Start and complete study sessions.
+- Focus timer.
+- Pause and resume sessions.
+- Record actual study duration.
+- Add study notes.
+- Track session completion.
+- Record topic confidence and difficulty.
+
+### 6. 🧠 Intelligent Revision Management
+
+- Track previously studied topics.
+- Recommend revision sessions.
+- Apply spaced-repetition principles.
+- Prioritize difficult topics.
+- Track revision history.
+- Monitor topic confidence.
+
+### 7. 📊 Progress & Analytics
+
+Understand your academic preparation through meaningful insights.
 
 - Overall syllabus completion.
-- Subject-wise completion.
-- Planned versus completed sessions.
-- Daily study hours.
-- Weekly study consistency.
-- Revision completion.
-- Missed sessions.
+- Subject-wise progress.
+- Planned versus completed study sessions.
+- Daily and weekly study hours.
+- Learning consistency.
+- Missed study sessions.
 - Topic confidence.
-- Exam readiness.
+- Examination preparation status.
 
-Provide actionable insights.
+### 8. 💬 AI Study Assistant
 
-Examples:
+An AI assistant designed specifically for academic planning.
 
-"Your Mathematics syllabus is 65% complete."
+Example queries:
 
-"DBMS has the highest number of incomplete topics."
+- Create a study plan for tomorrow.
+- I have three examinations next week. Organize my preparation.
+- I missed two study sessions. Reschedule my plan.
+- Which subject should I prioritize today?
+- I have only two hours available. Optimize my schedule.
+- Create a seven-day revision strategy.
 
-"You completed 80% of your planned sessions this week."
+The assistant uses student-specific academic context to provide relevant recommendations.
 
-Use real user activity for all metrics.
+---
 
-# 13. REAL AI/ML IMPLEMENTATION
+## 🧠 AI & Machine Learning Architecture
 
-Use AI and ML to make the planner genuinely intelligent.
+ThinkFlow AI combines Large Language Models with Machine Learning to deliver personalized academic recommendations.
 
-LLM integration using Gemini:
+### AI Integration
 
-- Parse uploaded syllabi.
-- Extract topics.
-- Generate study schedules.
-- Recommend priorities.
-- Explain schedule decisions.
-- Reorganize incomplete schedules.
+**Google Gemini API**
 
-Keep API keys server-side.
+Used for:
 
-Machine learning using Python, FastAPI, and Scikit-learn:
+- Syllabus analysis.
+- Topic extraction.
+- Personalized study plan generation.
+- Study recommendations.
+- Academic planning assistance.
+- Schedule explanations.
 
-Design a modular recommendation engine for:
+### Machine Learning
 
-- Topic difficulty prediction.
-- Study duration estimation.
-- Weak subject detection.
-- Topic mastery estimation.
-- Revision recommendations.
-- Study schedule optimization.
+**Python + Scikit-learn**
 
-Start with explainable rule-based logic when training data is insufficient.
+Planned ML capabilities:
 
-Do not claim that an ML model has been trained without actual data.
+| ML Module | Purpose |
+|---|---|
+| Topic Difficulty Estimation | Estimate the difficulty of individual topics |
+| Weak Subject Detection | Identify subjects requiring additional attention |
+| Study Duration Estimation | Estimate the time required for study sessions |
+| Topic Mastery Estimation | Estimate student understanding based on recorded progress |
+| Revision Recommendation | Recommend topics for revision |
+| Performance Prediction | Estimate academic preparation progress |
 
-Use student history to gradually improve recommendations.
+**Important:** ML recommendations should begin with explainable rule-based logic when sufficient training data is unavailable. Trained models can be introduced as real student interaction data becomes available.
 
-# 14. TECHNOLOGY STACK
+### Adaptive Learning Workflow
 
-Frontend:
-- React.
-- Vite.
-- TypeScript.
-- Tailwind CSS.
-- shadcn/ui.
-- Framer Motion.
-- Recharts.
-- Lucide React.
+```text
+Student Activity
+       |
+       v
+Progress Tracking
+       |
+       v
+Performance Analysis
+       |
+       v
+Weak Topic Detection
+       |
+       v
+Recommendation Engine
+       |
+       v
+Adaptive Study Schedule
+       |
+       v
+Updated Student Progress
+```
 
-Backend:
-- Node.js.
-- Express.js.
-- REST APIs.
+---
 
-Database:
-- PostgreSQL.
-- Prisma ORM.
+## 🏗️ System Architecture
 
-Authentication:
-- JWT.
-- Google OAuth readiness.
+```text
+                  STUDENT
+                     |
+                     v
+              React + Vite
+                     |
+                     v
+               API Client
+                     |
+                     v
+             Node.js + Express
+                     |
+          -------------------------
+          |           |           |
+          v           v           v
+       Planner     Progress     AI Service
+       Service     Service      Integration
+          |           |           |
+          -------------------------
+                     |
+                     v
+                PostgreSQL
+                     |
+                  Prisma
+                     |
+                     v
+              Python FastAPI
+                     |
+                     v
+              ML Recommendation
+                  Engine
+                     |
+                     v
+             Adaptive Scheduling
+```
 
-AI:
-- Gemini API.
+---
 
-ML:
-- Python.
-- FastAPI.
-- Scikit-learn.
+## 🛠️ Technology Stack
 
-Use modular architecture and reusable components.
+### Frontend
 
-# 15. DATABASE MODELS
+- React
+- Vite
+- TypeScript
+- Tailwind CSS
+- shadcn/ui
+- Framer Motion
+- Recharts
+- Lucide React
 
-Create:
+### Backend
 
-- User.
-- StudentProfile.
-- Subject.
-- Chapter.
-- Topic.
-- Examination.
-- StudyPlan.
-- StudySession.
-- StudySessionLog.
-- TopicProgress.
-- RevisionSchedule.
-- AIRecommendation.
-- UploadedSyllabus.
+- Node.js
+- Express.js
+- REST APIs
 
-Use proper relationships, constraints, indexes, timestamps, and user-level data isolation.
+### Database
 
-# 16. FUNCTIONAL REQUIREMENTS
+- PostgreSQL
+- Prisma ORM
 
-The application must have actual working interactions.
+### AI & Machine Learning
 
-Implement:
-- Registration and login.
-- Onboarding.
-- CRUD operations.
-- Study schedule generation.
-- Calendar navigation.
-- Session timer.
-- Progress updates.
-- Syllabus management.
-- AI recommendations.
-- Revision tracking.
-- Search and filtering.
-- Theme switching.
-- Form validation.
-- Notifications.
-- Responsive navigation.
+- Google Gemini API
+- Python
+- FastAPI
+- Pandas
+- NumPy
+- Scikit-learn
 
-Do not leave decorative buttons.
+### Additional Technologies
 
-Do not fake backend integrations.
+- JWT Authentication
+- Google OAuth
+- Zod Validation
+- React Query
 
-If credentials are unavailable, provide an explicitly labeled demo mode and configuration instructions.
+---
 
-# 17. DEMO EXPERIENCE
+## 📂 Project Structure
 
-Provide a sample student account or demo mode with:
+A suggested modular project structure:
 
-- 5 subjects.
-- Chapters and topics.
-- Upcoming examinations.
-- A weekly study schedule.
-- Completed and incomplete sessions.
-- Revision history.
-- Progress analytics.
+```text
+ThinkFlow-AI/
+│
+├── frontend/
+│   ├── public/
+│   ├── src/
+│   │   ├── assets/
+│   │   ├── components/
+│   │   ├── features/
+│   │   │   ├── dashboard/
+│   │   │   ├── planner/
+│   │   │   ├── subjects/
+│   │   │   ├── calendar/
+│   │   │   ├── sessions/
+│   │   │   ├── analytics/
+│   │   │   └── assistant/
+│   │   ├── hooks/
+│   │   ├── layouts/
+│   │   ├── lib/
+│   │   ├── pages/
+│   │   ├── services/
+│   │   ├── types/
+│   │   └── App.tsx
+│   │
+│   └── package.json
+│
+├── backend/
+│   ├── src/
+│   │   ├── config/
+│   │   ├── controllers/
+│   │   ├── middleware/
+│   │   ├── routes/
+│   │   ├── services/
+│   │   ├── repositories/
+│   │   ├── validators/
+│   │   └── server.js
+│   │
+│   ├── prisma/
+│   │   └── schema.prisma
+│   │
+│   └── package.json
+│
+├── ml-service/
+│   ├── app/
+│   │   ├── routes/
+│   │   ├── models/
+│   │   ├── services/
+│   │   └── main.py
+│   │
+│   ├── requirements.txt
+│   └── README.md
+│
+├── .gitignore
+└── README.md
+```
 
-Label sample information as demo data.
+*The structure represents the intended architecture. Actual directories may vary depending on implementation.*
 
-Allow a student to explore the entire planner without configuring external AI credentials.
+---
 
-# 18. FINAL PRODUCT REQUIREMENTS
+## 🗄️ Database Models
 
-Build the actual application, not just a landing page.
+The application is designed around the following relational entities:
 
-The student should be able to:
+| Model | Responsibility |
+|---|---|
+| User | Authentication and account information |
+| StudentProfile | Academic profile and preferences |
+| Subject | Student subjects |
+| Chapter | Subject chapter organization |
+| Topic | Individual learning topics |
+| Examination | Examination schedules and deadlines |
+| StudyPlan | Daily and weekly plans |
+| StudySession | Scheduled study sessions |
+| StudySessionLog | Actual study activity |
+| TopicProgress | Topic completion and confidence |
+| RevisionSchedule | Upcoming revision sessions |
+| AIRecommendation | Personalized AI recommendations |
+| UploadedSyllabus | Uploaded academic documents |
 
-1. Register and set up their academic profile.
-2. Add or upload their syllabus.
-3. Enter examination dates.
-4. Set daily study availability.
-5. Generate an AI-powered study plan.
-6. View daily and weekly schedules.
-7. Start and complete study sessions.
-8. Track subject and topic progress.
-9. Receive adaptive schedule recommendations.
-10. Manage revision sessions.
-11. Understand their preparation status.
+---
 
-The application must be visually consistent, responsive, usable, and maintainable.
+## ⚙️ Installation & Setup
 
-Make reasonable implementation decisions independently. Do not stop to ask the user for repeated design approvals.
+### Prerequisites
 
-Do not spend the implementation on unnecessary extra modules.
+Install the following:
 
-**FINAL PRODUCT IDENTITY:**
+- Node.js
+- npm
+- PostgreSQL
+- Python 3.10+
+- Git
 
-ThinkFlow AI is an intelligent personal academic planner that understands what a student needs to study, when they need to study it, how much time they have, and how their preparation is progressing.
+### 1. Clone the Repository
 
-It should feel like having a personal academic planning assistant that continuously organizes and improves the student's study routine.
+```bash
+git clone https://github.com/YOUR_USERNAME/ThinkFlow-AI.git
 
-Build this complete focused product in one implementation pass.
+cd ThinkFlow-AI
+```
 
-This project was built with [Lovable](https://lovable.dev).
+### 2. Frontend Setup
 
-## Build with Lovable
+```bash
+cd frontend
 
-Continue developing this project in the [Lovable editor](https://lovable.dev/projects/7e27befb-c16c-4245-a7db-754d789358ba).
+npm install
 
-- **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: every change made in Lovable is committed straight to this repository.
-- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
-
-## Development
-
-Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
-
-```sh
-git clone <this-repository-url>
-cd <repository-name>
-npm i
 npm run dev
 ```
+
+### 3. Backend Setup
+
+```bash
+cd backend
+
+npm install
+```
+
+Create a `.env` file:
+
+```env
+PORT=5000
+
+DATABASE_URL="postgresql://username:password@localhost:5432/thinkflow"
+
+JWT_SECRET=your_secure_secret
+
+GEMINI_API_KEY=your_gemini_api_key
+
+CLIENT_URL=http://localhost:5173
+```
+
+Configure the database and Prisma:
+
+```bash
+npx prisma generate
+
+npx prisma migrate dev
+```
+
+Start the backend:
+
+```bash
+npm run dev
+```
+
+### 4. ML Service Setup
+
+```bash
+cd ml-service
+
+python -m venv venv
+```
+
+Activate the virtual environment.
+
+Windows:
+
+```bash
+venv\Scripts\activate
+```
+
+Linux/macOS:
+
+```bash
+source venv/bin/activate
+```
+
+Install dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+Start FastAPI:
+
+```bash
+uvicorn app.main:app --reload --port 8000
+```
+
+API documentation:
+
+```text
+http://localhost:8000/docs
+```
+
+*These commands assume the corresponding scripts, files, and dependencies have been implemented.*
+
+---
+
+## 🔐 Environment Variables
+
+Never commit API keys, passwords, or secrets to GitHub.
+
+Required configuration:
+
+| Variable | Description |
+|---|---|
+| PORT | Backend server port |
+| DATABASE_URL | PostgreSQL connection string |
+| JWT_SECRET | Authentication secret |
+| GEMINI_API_KEY | Google Gemini API key |
+| CLIENT_URL | Frontend application URL |
+
+Use environment-specific configuration for development and production.
+
+---
+
+## 🎯 Development Roadmap
+
+- [ ] Authentication and student onboarding
+- [ ] Academic profile management
+- [ ] Subject and syllabus management
+- [ ] PDF syllabus extraction
+- [ ] AI-powered study plan generation
+- [ ] Daily and weekly planner
+- [ ] Calendar integration
+- [ ] Study session tracking
+- [ ] Adaptive schedule recommendations
+- [ ] Revision management
+- [ ] Performance analytics
+- [ ] Gemini AI assistant
+- [ ] Python ML recommendation service
+- [ ] Topic mastery estimation
+- [ ] Production deployment
+
+---
+
+## 🔮 Future Enhancements
+
+Potential future improvements:
+
+- Google Calendar synchronization.
+- Smart notifications and reminders.
+- Voice-based study assistant.
+- Advanced spaced-repetition algorithms.
+- Personalized examination readiness prediction.
+- Multi-device synchronization.
+- Collaborative study planning.
+- Advanced learning analytics.
+
+---
+
+## 🎯 Project Objective
+
+The objective of ThinkFlow AI is to solve a common student problem: knowing what to study, when to study it, and how to manage preparation effectively.
+
+Traditional planners require students to manually manage every task.
+
+ThinkFlow AI aims to make academic planning intelligent, adaptive, and personalized.
+
+**Not just another planner. A smarter way to manage learning.**
+
+---
+
+## 👨‍💻 Author
+
+**Dheeraj Mishra**
+
+B.Tech Computer Science & Engineering
+
+Interested in Full Stack Development, Artificial Intelligence, Machine Learning, and Backend Engineering.
+
+- Live Link: https://thinkflow-study-planner.vercel.app/
+- GitHub: https://github.com/dheerajmishra75
+- LinkedIn: https://www.linkedin.com/in/dheeraj-mishra-5513b0356
+
+---
+
+## 📄 License
+
+This project is currently under development. Add an appropriate open-source license before distributing it publicly.
