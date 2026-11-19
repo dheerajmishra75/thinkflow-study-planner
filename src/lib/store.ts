@@ -1,0 +1,146 @@
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
+import { addDays, today, uid } from "./planner/dates";
+import { buildDemo, demoProfile } from "./planner/demo";
+import { generatePlan, nextRevisionInterval } from "./planner/engine";
+import type { Adjustment, Chapter, Profile, SessionFeedback, StudySession, Subject, Topic } from "./planner/types";
+
+export interface Notice { id: string; at: string; text: string; read: boolean }
+
+interface State {
+  profile: Profile | null;
+  demo: boolean;
+  subjects: Subject[];
+  sessions: StudySession[];
+  adjustments: Adjustment[];
+  notices: Notice[];
+  theme: "light" | "dark";
+  hydrated: boolean;
+  loadDemo: () => void;
+  completeOnboarding: (p: Profile, subjects: Subject[]) => void;
+  reset: () => void;
+  setProfile: (p: Profile) => void;
+  setTheme: (t: "light" | "dark") => void;
+  // subjects
+  upsertSubject: (s: Subject) => void;
+  deleteSubject: (id: string) => void;
+  addChapter: (subjectId: string, name: string) => void;
+  updateChapter: (subjectId: string, chapterId: string, name: string) => void;
+  deleteChapter: (subjectId: string, chapterId: string) => void;
+  upsertTopic: (subjectId: string, chapterId: string, t: Topic) => void;
+  deleteTopic: (subjectId: string, chapterId: string, topicId: string) => void;
+  markForRevision: (topicId: string) => void;
+  rateRevision: (topicId: string, rating: number) => void;
+  importSubjects: (subjects: Subject[]) => void;
+  // sessions
+  upsertSession: (s: StudySession) => void;
+  deleteSession: (id: string) => void;
+  setStatus: (id: string, status: StudySession["status"]) => void;
+  finishSession: (id: string, data: { actualMinutes: number; notes?: string; partial: boolean; feedback: SessionFeedback }) => void;
+  regenerate: () => Adjustment;
+  // adjustments
+  propose: (a: Adjustment) => void;
+  applyAdjustment: (id: string) => void;
+  dismissAdjustment: (id: string) => void;
+  notify: (text: string) => void;
+  readNotices: () => void;
+}
+
+const mapTopic = (subjects: Subject[], topicId: string, fn: (t: Topic) => Topic) =>
+  subjects.map((s) => ({ ...s, chapters: s.chapters.map((c) => ({ ...c, topics: c.topics.map((t) => (t.id === topicId ? fn(t) : t)) })) }));
+const mapSubject = (subjects: Subject[], id: string, fn: (s: Subject) => Subject) => subjects.map((s) => (s.id === id ? fn(s) : s));
+const mapChapter = (subjects: Subject[], sid: string, cid: string, fn: (c: Chapter) => Chapter) =>
+  mapSubject(subjects, sid, (s) => ({ ...s, chapters: s.chapters.map((c) => (c.id === cid ? fn(c) : c)) }));
+
+export const useStore = create<State>()(
+  persist(
+    (set, get) => ({
+      profile: null, demo: false, subjects: [], sessions: [], adjustments: [], notices: [], theme: "light", hydrated: false,
+      loadDemo: () => {
+        const { subjects, sessions } = buildDemo();
+        set({ profile: demoProfile, demo: true, subjects, sessions, adjustments: [], notices: [{ id: uid(), at: new Date().toISOString(), text: "Demo data loaded: 5 subjects, 2 weeks of plan and study history.", read: false }] });
+      },
+      completeOnboarding: (profile, subjects) => {
+        const sessions = generatePlan(subjects, profile, [], today(), 14);
+        set({ profile, demo: false, subjects, sessions, adjustments: [{ id: uid(), createdAt: today(), kind: "generate", title: "Initial study plan created", reason: `Built ${sessions.length} sessions over 14 days within ${profile.hoursPerDay}h/day and ${profile.maxSessionsPerDay} sessions/day. Topics are ordered by exam urgency, importance, difficulty and your current confidence. The day before each exam is reserved for revision and a mock test.`, changes: [], status: "applied", add: [], remove: [] }], notices: [] });
+      },
+      reset: () => set({ profile: null, demo: false, subjects: [], sessions: [], adjustments: [], notices: [] }),
+      setProfile: (profile) => set({ profile }),
+      setTheme: (theme) => set({ theme }),
+      upsertSubject: (s) => set((st) => ({ subjects: st.subjects.some((x) => x.id === s.id) ? mapSubject(st.subjects, s.id, () => s) : [...st.subjects, s] })),
+      deleteSubject: (id) => set((st) => ({ subjects: st.subjects.filter((s) => s.id !== id), sessions: st.sessions.filter((s) => s.subjectId !== id) })),
+      addChapter: (sid, name) => set((st) => ({ subjects: mapSubject(st.subjects, sid, (s) => ({ ...s, chapters: [...s.chapters, { id: uid(), name, topics: [] }] })) })),
+      updateChapter: (sid, cid, name) => set((st) => ({ subjects: mapChapter(st.subjects, sid, cid, (c) => ({ ...c, name })) })),
+      deleteChapter: (sid, cid) => set((st) => ({ subjects: mapSubject(st.subjects, sid, (s) => ({ ...s, chapters: s.chapters.filter((c) => c.id !== cid) })) })),
+      upsertTopic: (sid, cid, t) => set((st) => ({ subjects: mapChapter(st.subjects, sid, cid, (c) => ({ ...c, topics: c.topics.some((x) => x.id === t.id) ? c.topics.map((x) => (x.id === t.id ? t : x)) : [...c.topics, t] })) })),
+      deleteTopic: (sid, cid, tid) => set((st) => ({ subjects: mapChapter(st.subjects, sid, cid, (c) => ({ ...c, topics: c.topics.filter((x) => x.id !== tid) })), sessions: st.sessions.filter((s) => s.topicId !== tid) })),
+      markForRevision: (tid) => set((st) => ({ subjects: mapTopic(st.subjects, tid, (t) => ({ ...t, needsRevision: true, nextRevision: today() })) })),
+      rateRevision: (tid, rating) => set((st) => ({ subjects: mapTopic(st.subjects, tid, (t) => {
+        const revisions = [...t.revisions, { date: today(), rating }];
+        return { ...t, revisions, confidence: rating, lastStudied: today(), needsRevision: rating <= 2, nextRevision: addDays(today(), nextRevisionInterval(rating, t.difficulty, revisions.length)) };
+      }) })),
+      importSubjects: (subs) => set((st) => ({ subjects: [...st.subjects, ...subs] })),
+      upsertSession: (s) => set((st) => ({ sessions: st.sessions.some((x) => x.id === s.id) ? st.sessions.map((x) => (x.id === s.id ? s : x)) : [...st.sessions, s] })),
+      deleteSession: (id) => set((st) => ({ sessions: st.sessions.filter((s) => s.id !== id) })),
+      setStatus: (id, status) => set((st) => ({ sessions: st.sessions.map((s) => (s.id === id ? { ...s, status, actualMinutes: status === "done" ? s.actualMinutes ?? s.duration : s.actualMinutes } : s)) })),
+      finishSession: (id, { actualMinutes, notes, partial, feedback }) => {
+        const s = get().sessions.find((x) => x.id === id);
+        if (!s) return;
+        set((st) => ({
+          sessions: st.sessions.map((x) => (x.id === id ? { ...x, status: partial ? "partial" : "done", actualMinutes, notes, feedback } : x)),
+          subjects: mapTopic(st.subjects, s.topicId, (t) => {
+            const spent = t.spentMinutes + actualMinutes;
+            const revisions = s.type === "revise" ? [...t.revisions, { date: today(), rating: feedback.confidence }] : t.revisions;
+            const reps = Math.max(1, revisions.length);
+            return {
+              ...t,
+              spentMinutes: spent,
+              status: feedback.completedTopic ? "done" : "learning",
+              // Blend logged difficulty into the topic so future plans adapt.
+              difficulty: Math.round((t.difficulty * 2 + feedback.difficulty) / 3),
+              confidence: feedback.confidence,
+              lastStudied: today(),
+              needsRevision: feedback.needsRevision,
+              revisions,
+              nextRevision: addDays(today(), feedback.needsRevision ? 1 : nextRevisionInterval(feedback.confidence, feedback.difficulty, reps)),
+            };
+          }),
+        }));
+        get().notify(`Logged ${actualMinutes} min on ${s.title}.${feedback.needsRevision ? " Revision scheduled for tomorrow." : ""}`);
+      },
+      regenerate: () => {
+        const st = get();
+        const now = today();
+        const kept = st.sessions.filter((s) => s.date < now || s.status !== "planned");
+        const futurePlanned = st.sessions.filter((s) => s.date >= now && s.status === "planned");
+        const add = generatePlan(st.subjects, st.profile!, kept.filter((s) => s.date >= now), now, 14, st.sessions);
+        const adj: Adjustment = { id: uid(), createdAt: now, kind: "generate", title: "Regenerate the next 14 days", reason: `Rebuilds upcoming planned sessions from your current syllabus progress, confidence ratings and personal pace. Completed and past sessions are kept. ${futurePlanned.length} planned sessions will be replaced by ${add.length}.`, changes: [`− ${futurePlanned.length} upcoming planned sessions`, `+ ${add.length} new sessions`], status: "proposed", add, remove: futurePlanned.map((s) => s.id) };
+        return adj;
+      },
+      propose: (a) => set((st) => ({ adjustments: [a, ...st.adjustments.filter((x) => !(x.status === "proposed" && x.kind === a.kind))] })),
+      applyAdjustment: (id) => {
+        const a = get().adjustments.find((x) => x.id === id);
+        if (!a) return;
+        set((st) => ({
+          sessions: [...st.sessions.filter((s) => !a.remove.includes(s.id)), ...a.add],
+          adjustments: st.adjustments.map((x) => (x.id === id ? { ...x, status: "applied" } : x)),
+        }));
+        get().notify(`Applied: ${a.title}`);
+      },
+      dismissAdjustment: (id) => set((st) => ({ adjustments: st.adjustments.map((x) => (x.id === id ? { ...x, status: "dismissed" } : x)) })),
+      notify: (text) => set((st) => ({ notices: [{ id: uid(), at: new Date().toISOString(), text, read: false }, ...st.notices].slice(0, 30) })),
+      readNotices: () => set((st) => ({ notices: st.notices.map((n) => ({ ...n, read: true })) })),
+    }),
+    {
+      name: "thinkflow-v1",
+      partialize: ({ hydrated: _h, ...rest }) => rest,
+      onRehydrateStorage: () => () => useStore.setState({ hydrated: true }),
+    },
+  ),
+);
+
+export const subjectById = (subjects: Subject[], id: string) => subjects.find((s) => s.id === id);
+export function findTopic(subjects: Subject[], topicId: string) {
+  for (const s of subjects) for (const c of s.chapters) for (const t of c.topics) if (t.id === topicId) return { subject: s, chapter: c, topic: t };
+  return null;
+}
