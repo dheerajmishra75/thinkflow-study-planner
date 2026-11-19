@@ -52,8 +52,8 @@ export interface StudySession {
   priority: Priority;
   type: StudyType;
   status: SessionStatus;
-  actualMinutes?: number;
-  notes?: string;
+  actualMinutes?: number | undefined;
+  notes?: string | undefined;
   feedback?: SessionFeedback;
 }
 
