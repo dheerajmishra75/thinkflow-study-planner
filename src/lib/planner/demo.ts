@@ -46,8 +46,8 @@ export function buildDemo() {
   ];
   const history: StudySession[] = [];
   pastDone.forEach(([si, ci, ti, conf], i) => {
-    const s = subjects[si];
-    const t = s.chapters[ci].topics[ti];
+    const s = subjects[si]!;
+    const t = s.chapters[ci]!.topics[ti]!;
     const date = addDays(now, -7 + (i % 7));
     t.status = "done"; t.confidence = conf; t.spentMinutes = t.estMinutes; t.lastStudied = date;
     t.revisions = [{ date, rating: conf }];
@@ -56,13 +56,13 @@ export function buildDemo() {
     history.push({ id: uid(), subjectId: s.id, topicId: t.id, title: t.name, description: `Learn ${t.name}`, date, start: "18:00", duration: Math.min(90, t.estMinutes), priority: "medium", type: "learn", status: "done", actualMinutes: Math.round(Math.min(90, t.estMinutes) * (conf >= 4 ? 0.8 : 1.1)), feedback: { completedTopic: true, difficulty: t.difficulty, confidence: conf, needsRevision: conf <= 2 } });
   });
   // A partially studied OS topic and two missed sessions.
-  const sem = subjects[1].chapters[1].topics[0];
+  const sem = subjects[1]!.chapters[1]!.topics[0]!;
   sem.status = "learning"; sem.confidence = 1; sem.spentMinutes = 45; sem.lastStudied = addDays(now, -2);
-  history.push({ id: uid(), subjectId: subjects[1].id, topicId: sem.id, title: sem.name, description: "Learn semaphores", date: addDays(now, -2), start: "19:45", duration: 90, priority: "high", type: "learn", status: "partial", actualMinutes: 45, feedback: { completedTopic: false, difficulty: 5, confidence: 1, needsRevision: true }, notes: "Producer–consumer still unclear." });
-  const fd = subjects[0].chapters[1].topics[0];
-  history.push({ id: uid(), subjectId: subjects[0].id, topicId: fd.id, title: fd.name, description: "Learn functional dependencies", date: addDays(now, -1), start: "18:00", duration: 90, priority: "high", type: "learn", status: "missed" });
-  const sched = subjects[1].chapters[0].topics[1];
-  history.push({ id: uid(), subjectId: subjects[1].id, topicId: sched.id, title: `${sched.name} — problems`, description: "Gantt chart problems", date: addDays(now, -1), start: "19:45", duration: 45, priority: "medium", type: "problems", status: "missed" });
+  history.push({ id: uid(), subjectId: subjects[1]!.id, topicId: sem.id, title: sem.name, description: "Learn semaphores", date: addDays(now, -2), start: "19:45", duration: 90, priority: "high", type: "learn", status: "partial", actualMinutes: 45, feedback: { completedTopic: false, difficulty: 5, confidence: 1, needsRevision: true }, notes: "Producer–consumer still unclear." });
+  const fd = subjects[0]!.chapters[1]!.topics[0]!;
+  history.push({ id: uid(), subjectId: subjects[0]!.id, topicId: fd.id, title: fd.name, description: "Learn functional dependencies", date: addDays(now, -1), start: "18:00", duration: 90, priority: "high", type: "learn", status: "missed" });
+  const sched = subjects[1]!.chapters[0]!.topics[1]!;
+  history.push({ id: uid(), subjectId: subjects[1]!.id, topicId: sched.id, title: `${sched.name} — problems`, description: "Gantt chart problems", date: addDays(now, -1), start: "19:45", duration: 45, priority: "medium", type: "problems", status: "missed" });
 
   const future = generatePlan(subjects, demoProfile, [], now, 14, history);
   return { subjects, sessions: [...history, ...future] };

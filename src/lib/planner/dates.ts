@@ -1,7 +1,7 @@
 export const pad = (n: number) => String(n).padStart(2, "0");
 export const toISO = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 export const fromISO = (s: string) => {
-  const [y, m, d] = s.split("-").map(Number);
+  const [y = 0, m = 1, d = 1] = s.split("-").map(Number);
   return new Date(y, m - 1, d);
 };
 export const addDays = (s: string, n: number) => {
@@ -13,7 +13,7 @@ export const daysBetween = (a: string, b: string) =>
   Math.round((fromISO(b).getTime() - fromISO(a).getTime()) / 86400000);
 export const today = () => toISO(new Date());
 export const toMin = (hhmm: string) => {
-  const [h, m] = hhmm.split(":").map(Number);
+  const [h = 0, m = 0] = hhmm.split(":").map(Number);
   return h * 60 + m;
 };
 export const fromMin = (m: number) => `${pad(Math.floor(m / 60) % 24)}:${pad(m % 60)}`;

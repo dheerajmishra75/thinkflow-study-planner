@@ -53,7 +53,7 @@ export function priorityFor(score: number): Priority {
 
 /** Spaced repetition: interval grows with confidence, shrinks with difficulty. */
 export function nextRevisionInterval(confidence: number, difficulty: number, reps: number) {
-  const base = [1, 3, 7, 14, 30][Math.min(reps, 4)];
+  const base = [1, 3, 7, 14, 30][Math.min(reps, 4)] ?? 30;
   const factor = 0.5 + confidence / 5 - (difficulty - 3) * 0.1;
   return Math.max(1, Math.round(base * Math.max(0.4, factor)));
 }
@@ -307,7 +307,7 @@ export function dailyRecommendation(subjects: Subject[], sessions: StudySession[
   if (!exam) return { text: "No upcoming exams. Use today for revision of low-confidence topics.", reason: "All exam dates are in the past." };
   const days = daysBetween(now, exam.examDate);
   const next = allTopics([exam]).filter((r) => r.topic.status !== "done").sort((a, b) => topicScore(b, now) - topicScore(a, now))[0];
-  const weak = [...subjects].sort((a, b) => weaknessScore(b, sessions) - weaknessScore(a, sessions))[0];
+  const weak = [...subjects].sort((a, b) => weaknessScore(b, sessions) - weaknessScore(a, sessions))[0]!;
   if (next && days <= 10) {
     return {
       text: `Your ${exam.name} exam is in ${days} day${days === 1 ? "" : "s"}. Finish ${next.topic.name} today and reserve tomorrow for practice and revision.`,

@@ -82,12 +82,12 @@ export const useStore = create<State>()(
       importSubjects: (subs) => set((st) => ({ subjects: [...st.subjects, ...subs] })),
       upsertSession: (s) => set((st) => ({ sessions: st.sessions.some((x) => x.id === s.id) ? st.sessions.map((x) => (x.id === s.id ? s : x)) : [...st.sessions, s] })),
       deleteSession: (id) => set((st) => ({ sessions: st.sessions.filter((s) => s.id !== id) })),
-      setStatus: (id, status) => set((st) => ({ sessions: st.sessions.map((s) => (s.id === id ? { ...s, status, actualMinutes: status === "done" ? s.actualMinutes ?? s.duration : s.actualMinutes } : s)) })),
+      setStatus: (id, status) => set((st): Partial<State> => ({ sessions: st.sessions.map((s): StudySession => (s.id === id ? { ...s, status, actualMinutes: status === "done" ? s.actualMinutes ?? s.duration : s.actualMinutes } : s)) })),
       finishSession: (id, { actualMinutes, notes, partial, feedback }) => {
         const s = get().sessions.find((x) => x.id === id);
         if (!s) return;
-        set((st) => ({
-          sessions: st.sessions.map((x) => (x.id === id ? { ...x, status: partial ? "partial" : "done", actualMinutes, notes, feedback } : x)),
+        set((st): Partial<State> => ({
+          sessions: st.sessions.map((x): StudySession => (x.id === id ? { ...x, status: partial ? "partial" : "done", actualMinutes, notes, feedback } : x)),
           subjects: mapTopic(st.subjects, s.topicId, (t) => {
             const spent = t.spentMinutes + actualMinutes;
             const revisions = s.type === "revise" ? [...t.revisions, { date: today(), rating: feedback.confidence }] : t.revisions;
