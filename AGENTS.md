@@ -28,3 +28,10 @@ use the editor.
   own key and store it in Secrets.
 - **Secrets.** Lovable manages them. Do not put secret values in the repo.
 <!-- LOVABLE:END -->
+
+## Application architecture
+- Keep scheduling and capacity validation in browser-safe planner modules; AI proposals pass the same checks before approval.
+- Store each signed-in student's complete planner aggregate in an owner-scoped Cloud workspace; nested IDs preserve syllabus/session relationships atomically.
+- Keep the labelled demo local and isolated from account workspaces; never copy demo rows into a student's Cloud account.
+- Expose AI RPC wrappers from src/lib and keep provider calls in server-only modules; paid AI operations require a verified account.
+- Use explainable scheduling and personal-history estimates rather than claiming a trained Python model; the deployed runtime supports JavaScript, not Python services.

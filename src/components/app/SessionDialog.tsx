@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import { useStore } from "@/lib/store";
+import { validateSchedule } from "@/lib/planner/validation";
 import { today, uid } from "@/lib/planner/dates";
 import { STUDY_TYPE_LABEL, type Priority, type StudySession, type StudyType } from "@/lib/planner/types";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -27,6 +28,10 @@ export function SessionDialog({ open, onOpenChange, session, rescheduleOnly, def
     if (!/^\d{2}:\d{2}$/.test(f.start)) return setErr("Pick a valid start time.");
     if (f.duration < 10 || f.duration > 240) return setErr("Duration must be between 10 and 240 minutes.");
     const title = f.title.trim() || topics.find((t) => t.id === f.topicId)?.name || "Study session";
+    const st = useStore.getState();
+    if (!st.profile) return setErr("Complete your profile first.");
+    const error = validateSchedule([f], st.sessions.filter(s => s.id !== f.id), st.profile, subjects);
+    if (error) return setErr(error);
     upsert({ ...f, title, status: rescheduleOnly && (f.status === "missed" || f.status === "skipped") ? "planned" : f.status });
     toast.success(rescheduleOnly ? `Moved to ${f.date} ${f.start}` : session ? "Session updated" : "Session added");
     onOpenChange(false);

@@ -14,13 +14,13 @@ export function Welcome() {
         </div>
         <div className="max-w-md py-16">
           <p className="eyebrow">Study planner for college students</p>
-          <h1 className="mt-4 text-4xl font-semibold leading-[1.1] lg:text-5xl">Know what to study, and when.</h1>
+          <h1 className="mt-4 text-4xl font-semibold leading-[1.1] lg:text-5xl">ThinkFlow AI</h1>
           <p className="mt-5 text-muted-foreground">Add your syllabus and exam dates. ThinkFlow builds a realistic daily plan that fits your hours, and adjusts it when you miss a session, struggle with a subject, or get ahead.</p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Button asChild size="lg"><Link to="/onboarding">Set up my plan <ArrowRight /></Link></Button>
             <Button size="lg" variant="outline" onClick={loadDemo}>Explore with demo data</Button>
           </div>
-          <p className="mt-4 text-xs text-muted-foreground">Your plan is saved in this browser. The demo uses a sample student and is clearly labelled.</p>
+          <p className="mt-4 text-xs text-muted-foreground">Your account keeps your plan saved securely. Demo data stays in this browser.</p>
         </div>
         <p className="text-xs text-muted-foreground">Goals → Syllabus → Plan → Study → Track → Adapt</p>
       </div>
@@ -35,7 +35,7 @@ export function Welcome() {
           ))}
           <div className="mt-4 border-l-2 border-warm pl-4 text-sm">
             <p className="font-medium">Missed yesterday's DBMS session</p>
-            <p className="text-muted-foreground">Moved to Thursday 18:00 — the first free slot before your exam.</p>
+            <p className="text-muted-foreground">Proposed for Thursday 18:00 — review before applying.</p>
           </div>
         </div>
       </div>

@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 export interface AiSessionDraft { subjectId: string; topicId: string; title: string; description: string; date: string; start: string; duration: number; type: "learn" | "revise" | "problems" | "practice" | "mock"; priority: "high" | "medium" | "low" }
 export interface AssistantResult { reply: string; proposal: { title: string; reason: string; add: AiSessionDraft[]; removeIds: string[] } | null }
@@ -27,13 +28,14 @@ const assistantSchema = {
 };
 
 export const askAssistant = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((d: { message: string; history: { role: "user" | "assistant"; content: string }[]; context: string }) => {
     if (!d?.message || d.message.length > 4000) throw new Error("Message is empty or too long.");
     if (d.context.length > 60000) throw new Error("Study context too large.");
     return d;
   })
   .handler(async ({ data }) => {
-    const { gatewayJSON, GatewayError } = await import("./gateway.server");
+    const { gatewayJSON, GatewayError } = await import("@/server/gateway.server");
     const system = `You are ThinkFlow, a study-planning assistant for a college student. You ONLY help with study planning, prioritisation, revision and exam preparation using the student's real data below. Be concise, concrete and kind. Explain the reasoning behind priorities (exam dates, difficulty, confidence, missed work).
 When the student asks to create, fix, optimise or reorganise their schedule, return a proposal with concrete sessions using ONLY subjectId/topicId values from the data, dates from today onward, start times in HH:mm, durations 30-90 min, and never exceed their daily hours or max sessions per day (count existing planned sessions on that day; remove sessions via removeIds to make room when needed). Otherwise proposal must be null. The student must approve proposals, so describe them in the reply.
 STUDENT DATA (JSON):\n${data.context}`;
@@ -59,12 +61,13 @@ const syllabusSchema = {
 };
 
 export const parseSyllabus = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((d: { text: string }) => {
     if (!d?.text || d.text.trim().length < 20) throw new Error("Paste more syllabus text.");
     return { text: d.text.slice(0, 40000) };
   })
   .handler(async ({ data }) => {
-    const { gatewayJSON, GatewayError } = await import("./gateway.server");
+    const { gatewayJSON, GatewayError } = await import("@/server/gateway.server");
     try {
       const result = await gatewayJSON<ParsedSyllabus>(
         "Extract a university syllabus into subjects → chapters (units/modules) → topics. Keep topic names short. Estimate difficulty 1-5 for an average undergraduate and study minutes 30-180. Use empty string for unknown subject code. Do not invent topics not in the text.",

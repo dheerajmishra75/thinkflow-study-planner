@@ -1,12 +1,20 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-export const Route = createFileRoute("/onboarding")({
-  head: () => ({ meta: [{ title: "Onboarding — ThinkFlow AI" }, { name: "description", content: "Onboarding in ThinkFlow AI." }, { property: "og:title", content: "Onboarding — ThinkFlow AI" }, { property: "og:description", content: "Onboarding in ThinkFlow AI." }] }),
-  component: () => (
-    <div className="max-w-lg">
-      <p className="eyebrow">Not built yet</p>
-      <h1 className="mt-1.5 text-2xl font-semibold">Onboarding</h1>
-      <p className="mt-2 text-sm text-muted-foreground">This page is not finished yet. Use the dashboard for today's plan and adaptive suggestions.</p>
-      <Link to="/" className="mt-4 inline-block text-sm text-primary hover:underline">Back to dashboard</Link>
-    </div>
-  ),
-});
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
+import { useState } from 'react';
+import type { Profile, Subject } from '@/lib/planner/types';
+import { useStore } from '@/lib/store';
+import { useAccount } from '@/components/study/CloudWorkspace';
+import { AccountForm } from '@/components/study/AccountForm';
+import { ProfileForm, emptyProfile } from '@/components/study/ProfileForm';
+import { SyllabusEditor } from '@/components/study/SyllabusEditor';
+import { Button } from '@/components/ui/button';
+import { ArrowLeft, Check } from 'lucide-react';
+import { askAssistant } from '@/lib/ai.functions';
+import { useServerFn } from '@tanstack/react-start';
+import { generatePlan } from '@/lib/planner/engine';
+import { validateSchedule } from '@/lib/planner/validation';
+import { uid, today } from '@/lib/planner/dates';
+export const Route=createFileRoute('/onboarding')({head:()=>({meta:[{title:'Create your study plan — ThinkFlow AI'},{name:'description',content:'Set your academic goals, syllabus and study capacity.'},{property:'og:title',content:'Create your study plan — ThinkFlow AI'},{property:'og:description',content:'Personalise your exam preparation.'},{property:'og:type',content:'website'},{name:'twitter:card',content:'summary_large_image'}]}),component:Onboarding});
+function Onboarding(){const {user}=useAccount(),navigate=useNavigate(),ask=useServerFn(askAssistant);const [step,setStep]=useState(1),[p,setP]=useState<Profile>(emptyProfile),[subjects,setSubjects]=useState<Subject[]>([]),[busy,setBusy]=useState(false),[error,setError]=useState('');
+ const finish=async()=>{setBusy(true);setError('');try{const base=generatePlan(subjects,p,[],today(),14);const r=await ask({data:{message:'Review and improve this initial 14-day study plan for my goals. If it is already realistic, explain its priorities and return no changes.',history:[],context:JSON.stringify({today:today(),profile:p,subjects,sessions:base})}});if(!r.ok)throw new Error(r.error);useStore.getState().completeOnboarding(p,subjects);if(r.result.proposal){const a=r.result.proposal,add=a.add.map(s=>({...s,id:uid(),status:'planned' as const}));const existing=base.filter(s=>!a.removeIds.includes(s.id));const e=validateSchedule(add,existing,p,subjects);if(!e)useStore.getState().propose({id:uid(),createdAt:today(),kind:'assistant',title:a.title,reason:a.reason,changes:add.map(s=>`${s.date} · ${s.title} (${s.duration} min)`),status:'proposed',add,remove:a.removeIds});}useStore.getState().notify(r.result.reply);navigate({to:'/'});}catch(e){setError(e instanceof Error?e.message:'Could not create your AI plan.');}finally{setBusy(false);}};
+ return <div className="mx-auto min-h-screen max-w-5xl px-5 py-8"><Link to="/" className="mb-8 inline-flex items-center gap-2 text-sm text-muted-foreground"><ArrowLeft className="size-4"/>ThinkFlow AI</Link>{!user?<div className="py-8"><AccountForm/></div>:<><p className="eyebrow">Your academic workspace · Step {step} of 3</p><h1 className="mt-2 mb-8 text-3xl font-semibold">{step===1?'Make room for your goals.':step===2?'Build your syllabus.':'Ready for a realistic plan.'}</h1><div className="mb-8 flex gap-2">{[1,2,3].map(n=><span key={n} className={`h-1 w-20 ${n<=step?'bg-primary':'bg-border'}`}/>)}</div>{step===1?<div className="max-w-2xl"><ProfileForm initial={p} label="Continue to syllabus" onSave={profile=>{setP(profile);setStep(2);}}/></div>:step===2?<><SyllabusEditor subjects={subjects} onChange={setSubjects}/><div className="mt-8 flex gap-3"><Button variant="outline" onClick={()=>setStep(1)}>Back</Button><Button disabled={!subjects.length||subjects.some(s=>!s.chapters.some(c=>c.topics.length))} onClick={()=>setStep(3)}>Review plan</Button></div></>:<div className="max-w-2xl"><div className="divide-y border-y text-sm">{[['Student',`${p.name} · ${p.degree} ${p.branch}`],['Study capacity',`${p.hoursPerDay} hours · ${p.maxSessionsPerDay} sessions per day`],['Subjects',`${subjects.length} subjects · ${subjects.reduce((n,s)=>n+s.chapters.reduce((a,c)=>a+c.topics.length,0),0)} topics`],['Study time',p.prefTime]].map(([l,v])=><div key={l} className="flex flex-wrap justify-between gap-2 py-4"><span className="text-muted-foreground">{l}</span><span>{v}</span></div>)}</div>{error&&<div className="mt-5 space-y-3"><p role="alert" className="text-sm text-destructive">{error}</p><Button variant="outline" onClick={()=>{useStore.getState().completeOnboarding(p,subjects);navigate({to:'/'});}}>Continue with explainable planner instead</Button></div>}<div className="mt-8 flex gap-3"><Button variant="outline" disabled={busy} onClick={()=>setStep(2)}>Back</Button><Button disabled={busy} onClick={finish}><Check/>{busy?'Analysing your syllabus…':'Create my AI study plan'}</Button></div></div>}</>}</div>;
+}

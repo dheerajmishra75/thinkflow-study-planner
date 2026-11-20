@@ -1,0 +1,11 @@
+CREATE TABLE public.study_workspaces (user_id uuid PRIMARY KEY, data jsonb NOT NULL DEFAULT '{}'::jsonb, updated_at timestamptz NOT NULL DEFAULT now());
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.study_workspaces TO authenticated;
+GRANT ALL ON public.study_workspaces TO service_role;
+ALTER TABLE public.study_workspaces ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Read own workspace" ON public.study_workspaces FOR SELECT TO authenticated USING (auth.uid() = user_id);
+CREATE POLICY "Create own workspace" ON public.study_workspaces FOR INSERT TO authenticated WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Update own workspace" ON public.study_workspaces FOR UPDATE TO authenticated USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Delete own workspace" ON public.study_workspaces FOR DELETE TO authenticated USING (auth.uid() = user_id);
+CREATE TABLE public.ai_access_state (id text PRIMARY KEY, status integer NOT NULL, message text NOT NULL, updated_at timestamptz NOT NULL DEFAULT now());
+GRANT ALL ON public.ai_access_state TO service_role;
+ALTER TABLE public.ai_access_state ENABLE ROW LEVEL SECURITY;

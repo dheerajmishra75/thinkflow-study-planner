@@ -1,12 +1,14 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-export const Route = createFileRoute("/settings")({
-  head: () => ({ meta: [{ title: "Profile & Settings — ThinkFlow AI" }, { name: "description", content: "Profile & Settings in ThinkFlow AI." }, { property: "og:title", content: "Profile & Settings — ThinkFlow AI" }, { property: "og:description", content: "Profile & Settings in ThinkFlow AI." }] }),
-  component: () => (
-    <div className="max-w-lg">
-      <p className="eyebrow">Not built yet</p>
-      <h1 className="mt-1.5 text-2xl font-semibold">Profile & Settings</h1>
-      <p className="mt-2 text-sm text-muted-foreground">This page is not finished yet. Use the dashboard for today's plan and adaptive suggestions.</p>
-      <Link to="/" className="mt-4 inline-block text-sm text-primary hover:underline">Back to dashboard</Link>
-    </div>
-  ),
-});
+import { createFileRoute, Link } from '@tanstack/react-router';
+import { useState } from 'react';
+import { Download, LogOut, Save } from 'lucide-react';
+import { toast } from 'sonner';
+import { useStore } from '@/lib/store';
+import { supabase } from '@/integrations/supabase/client';
+import type { Json } from '@/integrations/supabase/types';
+import { ProfileForm } from '@/components/study/ProfileForm';
+import { useAccount } from '@/components/study/CloudWorkspace';
+import { PageHeader, Section } from '@/components/app/bits';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+export const Route=createFileRoute('/settings')({head:()=>({meta:[{title:'Profile & Settings — ThinkFlow AI'},{name:'description',content:'Manage study capacity, academic profile, theme and account.'},{property:'og:title',content:'Profile & Settings — ThinkFlow AI'},{property:'og:description',content:'Personalise your academic workspace.'},{property:'og:type',content:'website'},{name:'twitter:card',content:'summary_large_image'}]}),component:Settings});
+function Settings(){const {profile,setProfile,theme,setTheme,reset,demo}=useStore(),{user,sync}=useAccount(),[confirm,setConfirm]=useState(false),[busy,setBusy]=useState(false);const exportData=()=>{const st=useStore.getState(),blob=new Blob([JSON.stringify({profile:st.profile,subjects:st.subjects,sessions:st.sessions,adjustments:st.adjustments},null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='thinkflow-study-plan.json';a.click();URL.revokeObjectURL(url);};const save=async()=>{if(!user||demo)return;setBusy(true);const st=useStore.getState();const {error}=await supabase.from('study_workspaces').upsert({user_id:user.id,data:JSON.parse(JSON.stringify({profile:st.profile,subjects:st.subjects,sessions:st.sessions,adjustments:st.adjustments,notices:st.notices,theme:st.theme})) as Json,updated_at:new Date().toISOString()});setBusy(false);if(error)toast.error(error.message);else toast.success('Your study workspace is saved.');};return <div><PageHeader eyebrow="Personal workspace" title="Profile & Settings"/><div className="grid gap-12 lg:grid-cols-[1fr_280px]"><Section title="Student profile">{profile&&<ProfileForm initial={profile} onSave={p=>{setProfile(p);toast.success('Profile saved. Regenerate your plan to use your new capacity.');}}/>}</Section><aside className="space-y-8"><Section title="Appearance"><div className="flex gap-2">{(['light','dark'] as const).map(t=><Button key={t} variant={theme===t?'default':'outline'} onClick={()=>setTheme(t)} className="capitalize">{t}</Button>)}</div></Section><Section title="Account"><p className="mb-3 break-words text-sm">{user?.email??'Demo student'}</p><p className="mb-4 text-xs text-muted-foreground">{demo?'Demo · saved in this browser':sync}</p>{user?<div className="space-y-2"><Button variant="outline" disabled={busy} onClick={save}><Save/>Save now</Button><Button variant="ghost" onClick={async()=>{const {error}=await supabase.auth.signOut();if(error)toast.error(error.message);}}><LogOut/>Sign out</Button></div>:<Button variant="outline" asChild><Link to="/onboarding">Create student account</Link></Button>}</Section><Section title="Your study data"><Button variant="outline" onClick={exportData}><Download/>Export study data</Button><Button variant="ghost" className="mt-3 text-destructive" onClick={()=>setConfirm(true)}>Reset study workspace</Button></Section><Section title="Planning approach"><p className="text-xs leading-relaxed text-muted-foreground">Gemini assists with syllabus analysis and planning. Scheduling uses explainable rules and adapts to your logged difficulty, confidence and study pace. No trained machine-learning model is claimed.</p></Section></aside></div><Dialog open={confirm} onOpenChange={setConfirm}><DialogContent><DialogHeader><DialogTitle>Reset your study workspace?</DialogTitle></DialogHeader><p className="text-sm text-muted-foreground">Your subjects, progress and sessions will be removed. Your account will remain.</p><div className="flex gap-2"><Button variant="outline" onClick={()=>setConfirm(false)}>Cancel</Button><Button variant="destructive" onClick={()=>{reset();setConfirm(false);}}>Reset workspace</Button></div></DialogContent></Dialog></div>;}

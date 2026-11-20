@@ -1,12 +1,6 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-export const Route = createFileRoute("/subjects")({
-  head: () => ({ meta: [{ title: "Subjects & Syllabus — ThinkFlow AI" }, { name: "description", content: "Subjects & Syllabus in ThinkFlow AI." }, { property: "og:title", content: "Subjects & Syllabus — ThinkFlow AI" }, { property: "og:description", content: "Subjects & Syllabus in ThinkFlow AI." }] }),
-  component: () => (
-    <div className="max-w-lg">
-      <p className="eyebrow">Not built yet</p>
-      <h1 className="mt-1.5 text-2xl font-semibold">Subjects & Syllabus</h1>
-      <p className="mt-2 text-sm text-muted-foreground">This page is not finished yet. Use the dashboard for today's plan and adaptive suggestions.</p>
-      <Link to="/" className="mt-4 inline-block text-sm text-primary hover:underline">Back to dashboard</Link>
-    </div>
-  ),
-});
+import { createFileRoute } from '@tanstack/react-router';
+import { PageHeader } from '@/components/app/bits';
+import { SyllabusEditor } from '@/components/study/SyllabusEditor';
+import { useStore } from '@/lib/store';
+export const Route=createFileRoute('/subjects')({head:()=>({meta:[{title:'Subjects & Syllabus — ThinkFlow AI'},{name:'description',content:'Manage subjects, exam dates, chapters, confidence and spaced revision.'},{property:'og:title',content:'Subjects & Syllabus — ThinkFlow AI'},{property:'og:description',content:'Manage your academic syllabus and exam preparation.'},{property:'og:type',content:'website'},{name:'twitter:card',content:'summary_large_image'}]}),component:Subjects});
+function Subjects(){const {subjects,markForRevision,rateRevision}=useStore();return <div><PageHeader eyebrow="Academic workspace" title="Subjects & Syllabus" sub={`${subjects.length} subjects · ${subjects.reduce((n,s)=>n+s.chapters.length,0)} chapters`}/><SyllabusEditor subjects={subjects} onChange={next=>{const ids=new Set(next.flatMap(s=>s.chapters.flatMap(c=>c.topics.map(t=>t.id))));useStore.setState(st=>({subjects:next,sessions:st.sessions.filter(s=>ids.has(s.topicId))}));}} onRevision={markForRevision} onRate={rateRevision}/></div>;}

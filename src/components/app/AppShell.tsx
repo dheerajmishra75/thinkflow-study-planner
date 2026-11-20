@@ -1,5 +1,7 @@
 import { Link, useLocation } from "@tanstack/react-router";
 import { useEffect, useState, type ReactNode } from "react";
+import { useAccount } from "@/components/study/CloudWorkspace";
+import { Button } from "@/components/ui/button";
 import { Bell, BookOpen, CalendarDays, ChartLine, LayoutGrid, ListChecks, Menu, MessageSquare, Moon, Settings, Sun, Timer, X } from "lucide-react";
 import { useStore } from "@/lib/store";
 import { Welcome } from "./Welcome";
@@ -31,7 +33,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   useEffect(() => setOpen(false), [pathname]);
 
   if (!hydrated) return <div className="min-h-screen bg-background" />;
-  if (pathname.startsWith("/onboarding") || pathname.startsWith("/focus")) return <>{children}</>;
+  if (pathname.startsWith("/onboarding") || pathname.startsWith("/reset-password") || pathname.startsWith("/focus")) return <>{children}</>;
   if (!profile) return <Welcome />;
 
   return (
@@ -42,7 +44,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       {open && <button aria-label="Close menu" className="fixed inset-0 z-30 bg-foreground/20 lg:hidden" onClick={() => setOpen(false)} />}
       <div className="flex min-w-0 flex-1 flex-col lg:pl-60">
         <header className="sticky top-0 z-20 flex h-14 items-center gap-3 border-b bg-background/95 px-4 backdrop-blur lg:px-8">
-          <button className="lg:hidden" aria-label="Open menu" onClick={() => setOpen(true)}>{open ? <X className="size-5" /> : <Menu className="size-5" />}</button>
+          <Button variant="ghost" size="icon" className="lg:hidden" aria-label="Open menu" onClick={() => setOpen(true)}>{open ? <X className="size-5" /> : <Menu className="size-5" />}</Button>
           <div className="flex-1" />
           <DemoBadge />
           <Notifications />
@@ -84,7 +86,8 @@ function SidebarBody() {
 
 function DemoBadge() {
   const demo = useStore((s) => s.demo);
-  if (!demo) return null;
+  const { sync } = useAccount();
+  if (!demo) return <span className="text-xs text-muted-foreground">{sync}</span>;
   return <span className="rounded border border-warm/40 bg-warm-soft px-2 py-0.5 text-xs font-medium text-foreground">Demo data</span>;
 }
 
@@ -92,9 +95,9 @@ function ThemeToggle() {
   const theme = useStore((s) => s.theme);
   const setTheme = useStore((s) => s.setTheme);
   return (
-    <button aria-label="Toggle theme" className="grid size-8 place-items-center rounded-md hover:bg-accent" onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>
+    <Button variant="ghost" size="icon" aria-label="Toggle theme" className="grid size-8 place-items-center rounded-md hover:bg-accent" onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>
       {theme === "dark" ? <Sun className="size-4" /> : <Moon className="size-4" />}
-    </button>
+    </Button>
   );
 }
 

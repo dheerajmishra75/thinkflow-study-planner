@@ -15,6 +15,7 @@ import { Route as CalendarRouteImport } from './routes/calendar'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as PlanRouteImport } from './routes/plan'
 import { Route as ProgressRouteImport } from './routes/progress'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as SessionsRouteImport } from './routes/sessions'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as SubjectsRouteImport } from './routes/subjects'
@@ -50,6 +51,11 @@ const ProgressRoute = ProgressRouteImport.update({
   path: '/progress',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SessionsRoute = SessionsRouteImport.update({
   id: '/sessions',
   path: '/sessions',
@@ -78,6 +84,7 @@ export interface FileRoutesByFullPath {
   '/onboarding': typeof OnboardingRoute
   '/plan': typeof PlanRoute
   '/progress': typeof ProgressRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/sessions': typeof SessionsRoute
   '/settings': typeof SettingsRoute
   '/subjects': typeof SubjectsRoute
@@ -90,6 +97,7 @@ export interface FileRoutesByTo {
   '/onboarding': typeof OnboardingRoute
   '/plan': typeof PlanRoute
   '/progress': typeof ProgressRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/sessions': typeof SessionsRoute
   '/settings': typeof SettingsRoute
   '/subjects': typeof SubjectsRoute
@@ -103,6 +111,7 @@ export interface FileRoutesById {
   '/onboarding': typeof OnboardingRoute
   '/plan': typeof PlanRoute
   '/progress': typeof ProgressRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/sessions': typeof SessionsRoute
   '/settings': typeof SettingsRoute
   '/subjects': typeof SubjectsRoute
@@ -117,6 +126,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/plan'
     | '/progress'
+    | '/reset-password'
     | '/sessions'
     | '/settings'
     | '/subjects'
@@ -129,6 +139,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/plan'
     | '/progress'
+    | '/reset-password'
     | '/sessions'
     | '/settings'
     | '/subjects'
@@ -141,6 +152,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/plan'
     | '/progress'
+    | '/reset-password'
     | '/sessions'
     | '/settings'
     | '/subjects'
@@ -154,6 +166,7 @@ export interface RootRouteChildren {
   OnboardingRoute: typeof OnboardingRoute
   PlanRoute: typeof PlanRoute
   ProgressRoute: typeof ProgressRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
   SessionsRoute: typeof SessionsRoute
   SettingsRoute: typeof SettingsRoute
   SubjectsRoute: typeof SubjectsRoute
@@ -204,6 +217,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProgressRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/sessions': {
       id: '/sessions'
       path: '/sessions'
@@ -242,6 +262,7 @@ const rootRouteChildren: RootRouteChildren = {
   OnboardingRoute: OnboardingRoute,
   PlanRoute: PlanRoute,
   ProgressRoute: ProgressRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
   SessionsRoute: SessionsRoute,
   SettingsRoute: SettingsRoute,
   SubjectsRoute: SubjectsRoute,

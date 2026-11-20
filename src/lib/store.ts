@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { addDays, today, uid } from "./planner/dates";
 import { buildDemo, demoProfile } from "./planner/demo";
+import { validateSchedule } from "./planner/validation";
 import { generatePlan, nextRevisionInterval } from "./planner/engine";
 import type { Adjustment, Chapter, Profile, SessionFeedback, StudySession, Subject, Topic } from "./planner/types";
 
@@ -71,7 +72,7 @@ export const useStore = create<State>()(
       deleteSubject: (id) => set((st) => ({ subjects: st.subjects.filter((s) => s.id !== id), sessions: st.sessions.filter((s) => s.subjectId !== id) })),
       addChapter: (sid, name) => set((st) => ({ subjects: mapSubject(st.subjects, sid, (s) => ({ ...s, chapters: [...s.chapters, { id: uid(), name, topics: [] }] })) })),
       updateChapter: (sid, cid, name) => set((st) => ({ subjects: mapChapter(st.subjects, sid, cid, (c) => ({ ...c, name })) })),
-      deleteChapter: (sid, cid) => set((st) => ({ subjects: mapSubject(st.subjects, sid, (s) => ({ ...s, chapters: s.chapters.filter((c) => c.id !== cid) })) })),
+      deleteChapter: (sid, cid) => set((st) => { const ids = st.subjects.find(s => s.id === sid)?.chapters.find(c => c.id === cid)?.topics.map(t => t.id) ?? []; return { subjects: mapSubject(st.subjects, sid, (s) => ({ ...s, chapters: s.chapters.filter((c) => c.id !== cid) })), sessions: st.sessions.filter(s => !ids.includes(s.topicId)) }; }),
       upsertTopic: (sid, cid, t) => set((st) => ({ subjects: mapChapter(st.subjects, sid, cid, (c) => ({ ...c, topics: c.topics.some((x) => x.id === t.id) ? c.topics.map((x) => (x.id === t.id ? t : x)) : [...c.topics, t] })) })),
       deleteTopic: (sid, cid, tid) => set((st) => ({ subjects: mapChapter(st.subjects, sid, cid, (c) => ({ ...c, topics: c.topics.filter((x) => x.id !== tid) })), sessions: st.sessions.filter((s) => s.topicId !== tid) })),
       markForRevision: (tid) => set((st) => ({ subjects: mapTopic(st.subjects, tid, (t) => ({ ...t, needsRevision: true, nextRevision: today() })) })),
@@ -85,7 +86,7 @@ export const useStore = create<State>()(
       setStatus: (id, status) => set((st): Partial<State> => ({ sessions: st.sessions.map((s): StudySession => (s.id === id ? { ...s, status, actualMinutes: status === "done" ? s.actualMinutes ?? s.duration : s.actualMinutes } : s)) })),
       finishSession: (id, { actualMinutes, notes, partial, feedback }) => {
         const s = get().sessions.find((x) => x.id === id);
-        if (!s) return;
+        if (!s || s.status === "done" || s.status === "partial") return;
         set((st): Partial<State> => ({
           sessions: st.sessions.map((x): StudySession => (x.id === id ? { ...x, status: partial ? "partial" : "done", actualMinutes, notes, feedback } : x)),
           subjects: mapTopic(st.subjects, s.topicId, (t) => {
@@ -113,14 +114,19 @@ export const useStore = create<State>()(
         const now = today();
         const kept = st.sessions.filter((s) => s.date < now || s.status !== "planned");
         const futurePlanned = st.sessions.filter((s) => s.date >= now && s.status === "planned");
-        const add = generatePlan(st.subjects, st.profile!, kept.filter((s) => s.date >= now), now, 14, st.sessions);
+        if (!st.profile) throw new Error("Complete your profile first.");
+        const add = generatePlan(st.subjects, st.profile, kept.filter((s) => s.date >= now), now, 14, st.sessions);
         const adj: Adjustment = { id: uid(), createdAt: now, kind: "generate", title: "Regenerate the next 14 days", reason: `Rebuilds upcoming planned sessions from your current syllabus progress, confidence ratings and personal pace. Completed and past sessions are kept. ${futurePlanned.length} planned sessions will be replaced by ${add.length}.`, changes: [`− ${futurePlanned.length} upcoming planned sessions`, `+ ${add.length} new sessions`], status: "proposed", add, remove: futurePlanned.map((s) => s.id) };
         return adj;
       },
       propose: (a) => set((st) => ({ adjustments: [a, ...st.adjustments.filter((x) => !(x.status === "proposed" && x.kind === a.kind))] })),
       applyAdjustment: (id) => {
         const a = get().adjustments.find((x) => x.id === id);
-        if (!a) return;
+        if (!a || a.status !== "proposed") return;
+        const st = get();
+        if (!st.profile) return;
+        const error = validateSchedule(a.add, st.sessions.filter(s => !a.remove.includes(s.id)), st.profile, st.subjects);
+        if (error) throw new Error(error);
         set((st) => ({
           sessions: [...st.sessions.filter((s) => !a.remove.includes(s.id)), ...a.add],
           adjustments: st.adjustments.map((x) => (x.id === id ? { ...x, status: "applied" } : x)),
@@ -133,7 +139,8 @@ export const useStore = create<State>()(
     }),
     {
       name: "thinkflow-v1",
-      partialize: ({ hydrated: _h, ...rest }) => rest,
+      partialize: (st) => st.demo ? { profile: st.profile, demo: true, subjects: st.subjects, sessions: st.sessions, adjustments: st.adjustments, notices: st.notices, theme: st.theme } : { demo: false, theme: st.theme },
+      skipHydration: true,
       onRehydrateStorage: () => () => useStore.setState({ hydrated: true }),
     },
   ),

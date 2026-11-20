@@ -1,3 +1,4 @@
+import { toast } from "sonner";
 import { Check, X } from "lucide-react";
 import { useState } from "react";
 import { useStore } from "@/lib/store";
@@ -27,7 +28,7 @@ export function AdjustmentCard({ a }: { a: Adjustment }) {
       )}
       {a.status === "proposed" && (
         <div className="mt-4 flex gap-2">
-          <Button size="sm" onClick={() => apply(a.id)}><Check />Apply</Button>
+          <Button size="sm" onClick={() => { try { apply(a.id); toast.success("Plan updated"); } catch (e) { toast.error(e instanceof Error ? e.message : "Cannot apply this proposal."); } }}><Check />Apply</Button>
           <Button size="sm" variant="ghost" onClick={() => dismiss(a.id)}><X />Dismiss</Button>
         </div>
       )}

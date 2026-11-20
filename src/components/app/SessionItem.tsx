@@ -32,7 +32,7 @@ export function SessionItem({ s, showDate, draggable }: { s: StudySession; showD
     <div
       draggable={draggable}
       onDragStart={(e) => e.dataTransfer.setData("text/session", s.id)}
-      className={cn("group flex items-center gap-4 border-b px-4 py-3 last:border-0", draggable && "cursor-grab", (s.status === "done" || s.status === "skipped") && "opacity-60")}
+      className={cn("study-row group flex items-center gap-4 border-b px-4 py-3 last:border-0", draggable && "cursor-grab", (s.status === "done" || s.status === "skipped") && "opacity-60")}
     >
       <div className="tabular w-14 shrink-0 text-xs text-muted-foreground">
         {showDate && <div className="text-foreground">{new Date(s.date + "T00:00").toLocaleDateString(undefined, { month: "short", day: "numeric" })}</div>}
@@ -60,7 +60,7 @@ export function SessionItem({ s, showDate, draggable }: { s: StudySession; showD
         <DropdownMenu>
           <DropdownMenuTrigger asChild><Button size="icon" variant="ghost" className="size-8" aria-label="Session actions"><MoreHorizontal className="size-4" /></Button></DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            {active && <DropdownMenuItem onClick={() => { setStatus(s.id, "done"); toast.success("Marked complete"); }}><Check />Mark complete</DropdownMenuItem>}
+            {active && <DropdownMenuItem onClick={() => { navigate({ to: "/focus/$sessionId", params: { sessionId: s.id } }); }}><Check />Mark complete</DropdownMenuItem>}
             <DropdownMenuItem onClick={() => setResched(true)}><CalendarClock />Reschedule</DropdownMenuItem>
             {active && <DropdownMenuItem onClick={() => { setStatus(s.id, "skipped"); toast("Session skipped"); }}><SkipForward />Skip</DropdownMenuItem>}
             {s.status === "skipped" || s.status === "missed" ? <DropdownMenuItem onClick={() => setStatus(s.id, "planned")}><Play />Restore</DropdownMenuItem> : null}

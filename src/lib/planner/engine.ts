@@ -78,7 +78,9 @@ function makeCalendar(existing: StudySession[], profile: Profile) {
       const cursor = own.reduce((a, s) => Math.max(a, toMin(s.start) + s.duration + BREAK), start);
       days.set(d, { used, count: own.length, cursor });
     }
-    return days.get(d)!;
+    const load = days.get(d);
+    if (!load) throw new Error("Day capacity is unavailable.");
+    return load;
   };
   const capacity = profile.hoursPerDay * 60;
   const fits = (d: string, mins: number) => {
@@ -130,7 +132,7 @@ export function generatePlan(subjects: Subject[], profile: Profile, existing: St
   const speed = personalSpeed(allSessions);
   const out: StudySession[] = [];
   const scheduled = new Set(existing.filter((s) => s.type === "learn" && s.status !== "missed" && s.status !== "skipped").map((s) => s.topicId));
-  const end = addDays(from, horizon);
+  const end = addDays(from, horizon - 1);
 
   // 1. Buffer days: revision + mock the day before each exam.
   for (const s of subjects) {
@@ -149,20 +151,21 @@ export function generatePlan(subjects: Subject[], profile: Profile, existing: St
 
   for (const ref of pending) {
     const remaining = Math.max(30, Math.round((ref.topic.estMinutes - ref.topic.spentMinutes) * speed));
-    const lastDay = addDays(ref.subject.examDate, -2);
+    const examLastDay = addDays(ref.subject.examDate, -2);
+    const lastDay = examLastDay < end ? examLastDay : end;
     let left = remaining;
     let day = from;
     const prio = priorityFor(topicScore(ref, from));
     let learnedOn: string | null = null;
     while (left > 0 && day <= lastDay && day <= end) {
-      const block = Math.min(MAX_BLOCK, left);
+      const block = Math.min(MAX_BLOCK, left, profile.hoursPerDay * 60);
       if (cal.fits(day, block)) {
         out.push(session(ref, day, cal.place(day, block), block, "learn", prio, DESC.learn(ref.topic.name)));
         left -= block;
         learnedOn = day;
       } else day = addDays(day, 1);
     }
-    if (!learnedOn) continue;
+    if (!learnedOn || left > 0) continue;
     // 3. Practice after hard topics, revision on spaced intervals.
     if (ref.topic.difficulty >= 3) {
       const d = placeAfter(cal, learnedOn, lastDay, 45);
@@ -178,7 +181,7 @@ export function generatePlan(subjects: Subject[], profile: Profile, existing: St
   // 4. Revisions that are due by spaced repetition.
   for (const ref of allTopics(subjects)) {
     if (!ref.topic.nextRevision || ref.topic.nextRevision > end) continue;
-    const d = placeAfter(cal, ref.topic.nextRevision < from ? from : ref.topic.nextRevision, addDays(ref.subject.examDate, -1), 30);
+    const d = placeAfter(cal, ref.topic.nextRevision < from ? from : ref.topic.nextRevision, (addDays(ref.subject.examDate, -1) < end ? addDays(ref.subject.examDate, -1) : end), 30);
     if (d) out.push(session(ref, d, cal.place(d, 30), 30, "revise", ref.topic.confidence <= 2 ? "high" : "medium", DESC.revise(ref.topic.name)));
   }
   return out.sort((a, b) => (a.date + a.start).localeCompare(b.date + b.start));
@@ -271,7 +274,7 @@ export function proposeExamMode(subjects: Subject[], profile: Profile, sessions:
     title: `Final preparation for ${exam.name}`,
     reason: `${exam.name} is in ${daysBetween(now, exam.examDate)} days with ${100 - subjectCompletion(exam)}% of the syllabus incomplete or low-confidence. Low-priority work for other subjects is paused until the exam and the freed time goes to the most important unfinished topics.`,
     changes: [
-      ...remove.map((id) => { const s = sessions.find((x) => x.id === id)!; return `− ${s.date} · ${s.title} (low priority)`; }),
+      ...remove.map((id) => { const s = sessions.find((x) => x.id === id); return s ? `− ${s.date} · ${s.title} (low priority)` : ""; }),
       ...add.map((a) => `+ ${a.date} ${a.start} · ${a.title} (${a.duration}m)`),
     ],
     status: "proposed", add, remove,
@@ -307,7 +310,7 @@ export function dailyRecommendation(subjects: Subject[], sessions: StudySession[
   if (!exam) return { text: "No upcoming exams. Use today for revision of low-confidence topics.", reason: "All exam dates are in the past." };
   const days = daysBetween(now, exam.examDate);
   const next = allTopics([exam]).filter((r) => r.topic.status !== "done").sort((a, b) => topicScore(b, now) - topicScore(a, now))[0];
-  const weak = [...subjects].sort((a, b) => weaknessScore(b, sessions) - weaknessScore(a, sessions))[0]!;
+  const weak = [...subjects].sort((a, b) => weaknessScore(b, sessions) - weaknessScore(a, sessions))[0] ?? exam;
   if (next && days <= 10) {
     return {
       text: `Your ${exam.name} exam is in ${days} day${days === 1 ? "" : "s"}. Finish ${next.topic.name} today and reserve tomorrow for practice and revision.`,

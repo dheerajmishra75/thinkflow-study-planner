@@ -1,0 +1,8 @@
+import { createFileRoute, Link } from '@tanstack/react-router';
+import { useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+export const Route=createFileRoute('/reset-password')({head:()=>({meta:[{title:'Reset password — ThinkFlow AI'},{name:'description',content:'Set a new password for your ThinkFlow student account.'},{property:'og:title',content:'Reset password — ThinkFlow AI'},{property:'og:description',content:'Securely recover your student account.'},{property:'og:type',content:'website'},{name:'twitter:card',content:'summary'}]}),component:ResetPassword});
+function ResetPassword(){const [password,setPassword]=useState(''),[message,setMessage]=useState(''),[busy,setBusy]=useState(false);return <div className="mx-auto max-w-sm px-5 py-16"><h1 className="mb-6 text-2xl font-semibold">Set a new password</h1><form className="space-y-4" onSubmit={async e=>{e.preventDefault();setBusy(true);const {error}=await supabase.auth.updateUser({password});setMessage(error?error.message:'Password updated. You can return to your study plan.');setBusy(false);}}><Label htmlFor="new-password">New password</Label><Input id="new-password" type="password" minLength={8} required autoComplete="new-password" value={password} onChange={e=>setPassword(e.target.value)}/><Button type="submit" disabled={busy}>Update password</Button>{message&&<p role="status" className="text-sm">{message}</p>}<Link to="/" className="block text-sm text-primary">Back to ThinkFlow</Link></form></div>;}

@@ -1,0 +1,12 @@
+import { useState } from 'react';
+import type { Profile } from '@/lib/planner/types';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+export const emptyProfile:Profile={name:'',college:'',degree:'',branch:'',year:'1',semester:'1',hoursPerDay:3,prefTime:'evening',maxSessionsPerDay:3,goals:'',level:'beginner'};
+export function ProfileForm({initial,onSave,label='Save profile'}:{initial:Profile;onSave:(p:Profile)=>void;label?:string}) {
+ const [p,setP]=useState(initial);
+ const textFields=[['name','Name'],['college','College'],['degree','Degree'],['branch','Branch'],['year','Academic year'],['semester','Semester']] as const;
+ return <form onSubmit={e=>{e.preventDefault();onSave({...p,name:p.name.trim(),college:p.college.trim()});}} className="space-y-6"><div className="grid gap-4 sm:grid-cols-2">{textFields.map(([k,l])=><div key={k}><Label htmlFor={'profile-'+k}>{l}</Label><Input id={'profile-'+k} required maxLength={120} value={p[k]} onChange={e=>setP({...p,[k]:e.target.value})}/></div>)}<div><Label htmlFor="study-hours">Study hours per day</Label><Input id="study-hours" type="number" min={0.5} max={12} step={0.5} required value={p.hoursPerDay} onChange={e=>setP({...p,hoursPerDay:Number(e.target.value)})}/></div><div><Label htmlFor="daily-capacity">Sessions per day</Label><Input id="daily-capacity" type="number" min={1} max={12} required value={p.maxSessionsPerDay} onChange={e=>setP({...p,maxSessionsPerDay:Number(e.target.value)})}/></div><div><Label htmlFor="preferred-time">Preferred study time</Label><select id="preferred-time" className="mt-1 h-9 w-full rounded-md border bg-background px-3 text-sm" value={p.prefTime} onChange={e=>setP({...p,prefTime:e.target.value as Profile['prefTime']})}>{['morning','afternoon','evening','night'].map(v=><option key={v} value={v}>{v}</option>)}</select></div><div><Label htmlFor="prep-level">Preparation level</Label><select id="prep-level" className="mt-1 h-9 w-full rounded-md border bg-background px-3 text-sm" value={p.level} onChange={e=>setP({...p,level:e.target.value as Profile['level']})}>{['beginner','intermediate','advanced'].map(v=><option key={v} value={v}>{v}</option>)}</select></div></div><div><Label htmlFor="learning-goals">Learning goals</Label><Textarea id="learning-goals" maxLength={2000} value={p.goals} onChange={e=>setP({...p,goals:e.target.value})}/></div><Button type="submit">{label}</Button></form>;
+}

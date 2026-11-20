@@ -4,6 +4,7 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AppShell } from "@/components/app/AppShell";
+import { CloudWorkspace } from "@/components/study/CloudWorkspace";
 import { Toaster } from "@/components/ui/sonner";
 
 function NotFoundComponent() {
@@ -71,7 +72,7 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   return (
     <QueryClientProvider client={queryClient}>
-      <AppShell><Outlet /></AppShell>
+      <CloudWorkspace><AppShell><Outlet /></AppShell></CloudWorkspace>
       <Toaster position="bottom-right" />
     </QueryClientProvider>
   );
