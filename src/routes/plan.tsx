@@ -49,7 +49,7 @@ function Plan() {
     if (!profile) return;
     const moved = { ...s, date, start: nextSlot(sessions.filter(x => x.id !== id), date, s.start) };
     const error = validateSchedule([moved], sessions.filter(x => x.id !== id), profile, subjects);
-    if (error) return toast.error(error);
+    if (error) { toast.error(error); return; }
     upsert(moved);
   };
 
@@ -64,7 +64,7 @@ function Plan() {
         <Tabs value={view} onValueChange={setView}><TabsList><TabsTrigger value="today">Today</TabsTrigger><TabsTrigger value="week">This Week</TabsTrigger><TabsTrigger value="all">All Tasks</TabsTrigger></TabsList></Tabs>
         <div className="relative min-w-48 flex-1"><Search className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" /><Input className="pl-8" placeholder="Search topics" value={q} onChange={(e) => setQ(e.target.value)} /></div>
         <Select value={subj} onValueChange={setSubj}><SelectTrigger className="w-44"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="all">All subjects</SelectItem>{subjects.map((s) => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}</SelectContent></Select>
-        <Select value={status} onValueChange={setStatus}><SelectTrigger className="w-36"><SelectValue /></SelectTrigger><SelectContent>{[["all", "Any status"], ["planned", "Upcoming"], ["overdue", "Overdue"], ["done", "Done"], ["partial", "Partial"], ["missed", "Missed"], ["skipped", "Skipped"]].map(([v, l]) => <SelectItem key={v} value={v ?? "all"}>{l}</SelectItem>)}</SelectContent></Select>
+        <Select value={status} onValueChange={setStatus}><SelectTrigger className="w-36"><SelectValue /></SelectTrigger><SelectContent>{([["all", "Any status"], ["planned", "Upcoming"], ["overdue", "Overdue"], ["done", "Done"], ["partial", "Partial"], ["missed", "Missed"], ["skipped", "Skipped"]] as const).map(([v, l]) => <SelectItem key={v} value={v ?? "all"}>{l}</SelectItem>)}</SelectContent></Select>
       </div>
       {view !== "all" && <div className="mb-3" />}
       <div className="space-y-6">
