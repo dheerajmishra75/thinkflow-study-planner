@@ -5,8 +5,9 @@ import { buildDemo, demoProfile } from "./planner/demo";
 import { validateSchedule } from "./planner/validation";
 import { generatePlan, nextRevisionInterval } from "./planner/engine";
 import type { Adjustment, Chapter, Profile, SessionFeedback, StudySession, Subject, Topic } from "./planner/types";
-
-export interface Notice { id: string; at: string; text: string; read: boolean }
+import { scoreQuiz, topicPerformance, updateFromAssessment, validateContent, type TopicContent, type LearningProgress, type QuizAttempt, type QuizQuestion, type QuizMode } from './planner/learning';
+import { buildNotices, defaultPreferences, mergeNotices, type Notice, type NoticePreferences } from './planner/notices';
+export type { Notice } from './planner/notices';
 
 interface State {
   profile: Profile | null;
@@ -17,6 +18,16 @@ interface State {
   notices: Notice[];
   theme: "light" | "dark";
   hydrated: boolean;
+  content: Record<string, TopicContent>;
+  learningProgress: Record<string, LearningProgress>;
+  attempts: QuizAttempt[];
+  noticePreferences: NoticePreferences;
+  cacheContent: (c: TopicContent) => void;
+  updateLearning: (id: string, patch: Partial<LearningProgress>) => void;
+  recordAssessment: (questions: QuizQuestion[], selected: Record<string, number | null>, mode: QuizMode, seconds: number, sessionId?: string) => QuizAttempt;
+  refreshNotices: () => void;
+  readNotice: (id: string) => void;
+  setNoticePreferences: (prefs: NoticePreferences) => void;
   loadDemo: () => void;
   completeOnboarding: (p: Profile, subjects: Subject[]) => void;
   reset: () => void;
@@ -57,15 +68,33 @@ export const useStore = create<State>()(
   persist(
     (set, get) => ({
       profile: null, demo: false, subjects: [], sessions: [], adjustments: [], notices: [], theme: "light", hydrated: false,
+      content: {}, learningProgress: {}, attempts: [], noticePreferences: defaultPreferences(),
+      cacheContent: (c) => { validateContent(c, c.topicId); if (!findTopic(get().subjects, c.topicId)) throw new Error('Topic no longer exists.'); set(st => ({content:{...st.content,[c.topicId]:c}})); },
+      updateLearning: (id, patch) => { if (!findTopic(get().subjects,id)) return; set(st => ({learningProgress:{...st.learningProgress,[id]:{bookmarked:false,materialComplete:false,savedNotes:'',lastOpened:new Date().toISOString(),...st.learningProgress[id],...patch}}})); },
+      recordAssessment: (questions, selected, mode, seconds, sessionId) => {
+        const st = get();
+        if (questions.some(q => !findTopic(st.subjects, q.topicId))) throw new Error('Assessment topic no longer exists.');
+        if (sessionId) { const session = st.sessions.find(s => s.id === sessionId); if (!session || !['done','partial'].includes(session.status) || questions.some(q => q.topicId !== session.topicId)) throw new Error('Assessment must match the completed session.'); }
+        const attempt: QuizAttempt = {id:uid(),mode,at:new Date().toISOString(),seconds:Math.max(0,Math.round(seconds)),...scoreQuiz(questions,selected),...(sessionId ? {sessionId} : {})};
+        const performance = topicPerformance(attempt);
+        let subjects = st.subjects;
+        for (const result of performance) subjects = mapTopic(subjects, result.topicId, t => updateFromAssessment(t,result.accuracy,st.attempts,today()));
+        const notice: Notice = {id:`assessment:${attempt.id}`,at:attempt.at,text:`Learning check: ${attempt.correct}/${attempt.total} correct (${attempt.accuracy}%). ${performance.filter(p=>p.accuracy<80).length} topic(s) need practice or revision.`,read:false,category:'assessment',target:'progress'};
+        set({subjects,attempts:[...st.attempts,attempt],notices:st.noticePreferences.categories.assessment?mergeNotices(st.notices,[notice]):st.notices});
+        return attempt;
+      },
+      refreshNotices: () => { const st=get();if(!st.profile)return;const incoming=buildNotices(st.subjects,st.sessions,st.profile,st.noticePreferences,new Date());const merged=mergeNotices(st.notices,incoming);if(merged.length!==st.notices.length)set({notices:merged}); },
+      readNotice: (id) => set(st=>({notices:st.notices.map(n=>n.id===id?{...n,read:true}:n)})),
+      setNoticePreferences: (noticePreferences) => set({noticePreferences}),
       loadDemo: () => {
-        const { subjects, sessions } = buildDemo();
-        set({ profile: demoProfile, demo: true, subjects, sessions, adjustments: [], notices: [{ id: uid(), at: new Date().toISOString(), text: "Demo data loaded: 5 subjects, 2 weeks of plan and study history.", read: false }] });
+        const { subjects, sessions, content, attempts, learningProgress } = buildDemo();
+        set({ profile: demoProfile, demo: true, subjects, sessions, content, attempts, learningProgress, noticePreferences:defaultPreferences(), adjustments: [], notices: [{ id: uid(), at: new Date().toISOString(), text: "Demo data loaded: 5 subjects, learning resources, assessments and study history.", read: false }] });
       },
       completeOnboarding: (profile, subjects) => {
         const sessions = generatePlan(subjects, profile, [], today(), 14);
-        set({ profile, demo: false, subjects, sessions, adjustments: [{ id: uid(), createdAt: today(), kind: "generate", title: "Initial study plan created", reason: `Built ${sessions.length} sessions over 14 days within ${profile.hoursPerDay}h/day and ${profile.maxSessionsPerDay} sessions/day. Topics are ordered by exam urgency, importance, difficulty and your current confidence. The day before each exam is reserved for revision and a mock test.`, changes: [], status: "applied", add: [], remove: [] }], notices: [] });
+        set({ profile, demo: false, subjects, sessions, content:{},attempts:[],learningProgress:{},noticePreferences:defaultPreferences(),adjustments: [{ id: uid(), createdAt: today(), kind: "generate", title: "Initial study plan created", reason: `Built ${sessions.length} sessions over 14 days within ${profile.hoursPerDay}h/day and ${profile.maxSessionsPerDay} sessions/day. Topics are ordered by exam urgency, importance, difficulty and your current confidence. The day before each exam is reserved for revision and a mock test.`, changes: [], status: "applied", add: [], remove: [] }], notices: [] });
       },
-      reset: () => set({ profile: null, demo: false, subjects: [], sessions: [], adjustments: [], notices: [] }),
+      reset: () => set({ profile: null, demo: false, subjects: [], sessions: [], adjustments: [], notices: [], content:{},learningProgress:{},attempts:[],noticePreferences:defaultPreferences() }),
       setProfile: (profile) => set({ profile }),
       setTheme: (theme) => set({ theme }),
       upsertSubject: (s) => set((st) => ({ subjects: st.subjects.some((x) => x.id === s.id) ? mapSubject(st.subjects, s.id, () => s) : [...st.subjects, s] })),
@@ -139,12 +168,16 @@ export const useStore = create<State>()(
     }),
     {
       name: "thinkflow-v1",
-      partialize: (st) => st.demo ? { profile: st.profile, demo: true, subjects: st.subjects, sessions: st.sessions, adjustments: st.adjustments, notices: st.notices, theme: st.theme } : { demo: false, theme: st.theme },
+      partialize: (st) => st.demo ? { ...workspaceSnapshot(st), demo: true } : { demo: false, theme: st.theme },
       skipHydration: true,
       onRehydrateStorage: () => () => useStore.setState({ hydrated: true }),
     },
   ),
 );
+
+export function workspaceSnapshot(st: Pick<State, 'profile'|'subjects'|'sessions'|'adjustments'|'notices'|'theme'|'content'|'attempts'|'learningProgress'|'noticePreferences'>) {
+  return {profile:st.profile,subjects:st.subjects,sessions:st.sessions,adjustments:st.adjustments,notices:st.notices,theme:st.theme,content:st.content,attempts:st.attempts,learningProgress:st.learningProgress,noticePreferences:st.noticePreferences};
+}
 
 export const subjectById = (subjects: Subject[], id: string) => subjects.find((s) => s.id === id);
 export function findTopic(subjects: Subject[], topicId: string) {

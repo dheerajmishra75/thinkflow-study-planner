@@ -1,5 +1,6 @@
 import { addDays, today, uid } from "./dates";
 import { generatePlan, nextRevisionInterval } from "./engine";
+import { buildLearningDemo } from "./learning-demo";
 import type { Profile, StudySession, Subject, Topic } from "./types";
 
 const T = (name: string, difficulty: number, estMinutes: number): Topic => ({
@@ -33,9 +34,9 @@ export function buildDemo() {
       { id: uid(), name: "Layers", topics: [T("OSI vs TCP/IP", 2, 45), T("Data link & framing", 3, 60)] },
       { id: uid(), name: "Network layer", topics: [T("IP addressing & subnetting", 4, 90), T("Routing algorithms", 4, 90)] },
     ]},
-    { id: uid(), name: "Design & Analysis of Algorithms", code: "CS304", examDate: addDays(now, 23), difficulty: 4, importance: 4, color: 5, chapters: [
-      { id: uid(), name: "Paradigms", topics: [T("Divide & conquer", 3, 60), T("Greedy algorithms", 3, 60), T("Dynamic programming", 5, 150)] },
-      { id: uid(), name: "Graphs", topics: [T("BFS / DFS", 2, 45), T("Shortest paths", 4, 90)] },
+    { id: uid(), name: "Artificial Intelligence", code: "CS304", examDate: addDays(now, 23), difficulty: 4, importance: 4, color: 5, chapters: [
+      { id: uid(), name: "Problem solving", topics: [T("Search algorithms", 3, 90), T("Knowledge representation", 3, 60)] },
+      { id: uid(), name: "Machine learning", topics: [T("Supervised learning", 4, 90), T("Neural networks", 5, 120)] },
     ]},
   ];
 
@@ -46,8 +47,9 @@ export function buildDemo() {
   ];
   const history: StudySession[] = [];
   pastDone.forEach(([si, ci, ti, conf], i) => {
-    const s = subjects[si]!;
-    const t = s.chapters[ci]!.topics[ti]!;
+    const s = subjects[si];
+    const t = s?.chapters[ci]?.topics[ti];
+    if (!s || !t) return;
     const date = addDays(now, -7 + (i % 7));
     t.status = "done"; t.confidence = conf; t.spentMinutes = t.estMinutes; t.lastStudied = date;
     t.revisions = [{ date, rating: conf }];
@@ -56,14 +58,17 @@ export function buildDemo() {
     history.push({ id: uid(), subjectId: s.id, topicId: t.id, title: t.name, description: `Learn ${t.name}`, date, start: "18:00", duration: Math.min(90, t.estMinutes), priority: "medium", type: "learn", status: "done", actualMinutes: Math.round(Math.min(90, t.estMinutes) * (conf >= 4 ? 0.8 : 1.1)), feedback: { completedTopic: true, difficulty: t.difficulty, confidence: conf, needsRevision: conf <= 2 } });
   });
   // A partially studied OS topic and two missed sessions.
-  const sem = subjects[1]!.chapters[1]!.topics[0]!;
+  const os = subjects[1], dbms = subjects[0];
+  const sem = os?.chapters[1]?.topics[0];
+  const fd = dbms?.chapters[1]?.topics[0];
+  const sched = os?.chapters[0]?.topics[1];
+  if (!os || !dbms || !sem || !fd || !sched) throw new Error("Demo syllabus is incomplete.");
   sem.status = "learning"; sem.confidence = 1; sem.spentMinutes = 45; sem.lastStudied = addDays(now, -2);
-  history.push({ id: uid(), subjectId: subjects[1]!.id, topicId: sem.id, title: sem.name, description: "Learn semaphores", date: addDays(now, -2), start: "19:45", duration: 90, priority: "high", type: "learn", status: "partial", actualMinutes: 45, feedback: { completedTopic: false, difficulty: 5, confidence: 1, needsRevision: true }, notes: "Producer–consumer still unclear." });
-  const fd = subjects[0]!.chapters[1]!.topics[0]!;
-  history.push({ id: uid(), subjectId: subjects[0]!.id, topicId: fd.id, title: fd.name, description: "Learn functional dependencies", date: addDays(now, -1), start: "18:00", duration: 90, priority: "high", type: "learn", status: "missed" });
-  const sched = subjects[1]!.chapters[0]!.topics[1]!;
-  history.push({ id: uid(), subjectId: subjects[1]!.id, topicId: sched.id, title: `${sched.name} — problems`, description: "Gantt chart problems", date: addDays(now, -1), start: "19:45", duration: 45, priority: "medium", type: "problems", status: "missed" });
+  history.push({ id: uid(), subjectId: os.id, topicId: sem.id, title: sem.name, description: "Learn semaphores", date: addDays(now, -2), start: "19:45", duration: 90, priority: "high", type: "learn", status: "partial", actualMinutes: 45, feedback: { completedTopic: false, difficulty: 5, confidence: 1, needsRevision: true }, notes: "Producer–consumer still unclear." });
+  history.push({ id: uid(), subjectId: dbms.id, topicId: fd.id, title: fd.name, description: "Learn functional dependencies", date: addDays(now, -1), start: "18:00", duration: 90, priority: "high", type: "learn", status: "missed" });
+  history.push({ id: uid(), subjectId: os.id, topicId: sched.id, title: `${sched.name} — problems`, description: "Gantt chart problems", date: addDays(now, -1), start: "19:45", duration: 45, priority: "medium", type: "problems", status: "missed" });
 
   const future = generatePlan(subjects, demoProfile, [], now, 14, history);
-  return { subjects, sessions: [...history, ...future] };
+  const sessions = [...history, ...future];
+  return { subjects, sessions, ...buildLearningDemo(subjects, sessions, now) };
 }

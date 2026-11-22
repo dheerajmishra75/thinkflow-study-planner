@@ -1,4 +1,5 @@
 # ThinkFlow completion
+- [ ] Current request: Complete the remaining connected learning ecosystem in this implementation pass.
 - [ ] Phase 1: Repair build errors and audit/verify existing planner, accounts, persistence and desktop/mobile workflows.
 - [ ] Phase 2: Add syllabus-linked material, notes, important questions and three quiz modes with post-session learning checks.
 - [ ] Phase 3: Validate/cache AI content and persist assessment history, confidence and revision updates in owner workspaces.

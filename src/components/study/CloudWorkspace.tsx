@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from '
 import type { User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import type { Json } from '@/integrations/supabase/types';
-import { useStore } from '@/lib/store';
+import { useStore, workspaceSnapshot } from '@/lib/store';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 const AccountContext = createContext<{user:User|null;ready:boolean;sync:string}>({user:null,ready:false,sync:'Loading'});
@@ -24,7 +24,7 @@ export function CloudWorkspace({children}:{children:ReactNode}) {
         if(data?.data && typeof data.data==='object' && !Array.isArray(data.data)) useStore.setState({...data.data as object,demo:false});
         const save=()=>{
           const st=useStore.getState();if(st.demo)return;
-          const snapshot=JSON.parse(JSON.stringify({profile:st.profile,subjects:st.subjects,sessions:st.sessions,adjustments:st.adjustments,notices:st.notices,theme:st.theme})) as Json;
+          const snapshot=JSON.parse(JSON.stringify(workspaceSnapshot(st))) as Json;
           setSync('Saving…');clearTimeout(timer);
           timer=setTimeout(()=>{queue=queue.then(async()=>{
             if(!alive||current!==generation)return;
