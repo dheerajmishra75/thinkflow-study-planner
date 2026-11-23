@@ -9,6 +9,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
+import { Quiz, TopicLearning } from "@/components/learning/TopicLearning";
+import { chooseQuestions } from "@/lib/planner/learning";
 
 export const Route = createFileRoute("/focus/$sessionId")({
   head: () => ({ meta: [{ title: "Focus session — ThinkFlow AI" }, { name: "description", content: "Distraction-free study timer." }, { property: "og:title", content: "Focus session — ThinkFlow AI" }, { property: "og:description", content: "Distraction-free study timer." }] }),
@@ -26,7 +28,7 @@ function Scale({ value, onChange, labels }: { value: number; onChange: (n: numbe
 
 function Focus() {
   const { sessionId } = Route.useParams();
-  const { sessions, subjects } = useStore();
+  const { sessions, subjects, content } = useStore();
   const setStatus = useStore((s) => s.setStatus);
   const finish = useStore((s) => s.finishSession);
   const navigate = useNavigate();
@@ -34,7 +36,7 @@ function Focus() {
   const [elapsed, setElapsed] = useState(0);
   const [running, setRunning] = useState(true);
   const [notes, setNotes] = useState(s?.notes ?? "");
-  const [stage, setStage] = useState<"timer" | "review">("timer");
+  const [stage, setStage] = useState<"timer" | "review" | "check" | "quiz" | "notes" | "material">("timer");
   const [partial, setPartial] = useState(false);
   const [fb, setFb] = useState({ completedTopic: true, difficulty: 3, confidence: 3, needsRevision: false });
 
@@ -51,8 +53,10 @@ function Focus() {
 
   const save = () => {
     finish(s.id, { actualMinutes: Math.max(1, Math.round(elapsed / 60)), notes, partial, feedback: partial ? { ...fb, completedTopic: false } : fb });
-    navigate({ to: "/" });
+    setStage("check");
   };
+  const mins = Math.max(1, Math.round(elapsed / 60));
+  const tc = content[s.topicId];
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
@@ -60,8 +64,31 @@ function Focus() {
         <Link to="/" className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"><ArrowLeft className="size-4" />Exit</Link>
         <span className="eyebrow">{STUDY_TYPE_LABEL[s.type]}</span>
       </header>
-      <main className="mx-auto flex w-full max-w-xl flex-1 flex-col justify-center px-6 pb-16">
-        {stage === "timer" ? (
+      <main className={cn("mx-auto flex w-full flex-1 flex-col justify-center px-6 pb-16", stage === "notes" || stage === "material" || stage === "quiz" ? "max-w-3xl" : "max-w-xl")} >
+        {stage === "check" ? (
+          <div>
+            <p className="eyebrow">Session saved · {mins} min</p>
+            <h1 className="mt-2 text-2xl font-semibold">Post-study learning check</h1>
+            <p className="mt-2 text-sm text-muted-foreground">Check what stuck from {ref?.topic.name}. Your result updates topic confidence and revision priority.</p>
+            {tc ? <div className="mt-8 grid gap-3">
+              <Button size="lg" className="justify-start" onClick={() => setStage("quiz")}>Take a quick 5-question MCQ test</Button>
+              <Button size="lg" variant="outline" className="justify-start" onClick={() => setStage("notes")}>Review short notes</Button>
+              <Button size="lg" variant="outline" className="justify-start" onClick={() => setStage("material")}>Read study material again</Button>
+            </div> : <div className="mt-8"><TopicLearning topicId={s.topicId} /></div>}
+            <Button variant="ghost" className="mt-6" onClick={() => navigate({ to: "/" })}>Finish for now</Button>
+          </div>
+        ) : stage === "quiz" && tc ? (
+          <div>
+            <p className="eyebrow">Quick learning check · {ref?.topic.name}</p>
+            <div className="mt-6"><Quiz questions={chooseQuestions([tc], "session")} mode="session" sessionId={s.id} /></div>
+            <div className="mt-8 flex gap-3"><Button variant="ghost" onClick={() => setStage("check")}>Back</Button><Button className="flex-1" onClick={() => navigate({ to: "/" })}>Back to dashboard</Button></div>
+          </div>
+        ) : stage === "notes" || stage === "material" ? (
+          <div>
+            <TopicLearning topicId={s.topicId} initialTab={stage} />
+            <div className="mt-8 flex gap-3"><Button variant="ghost" onClick={() => setStage("check")}>Back</Button><Button className="flex-1" onClick={() => navigate({ to: "/" })}>Back to dashboard</Button></div>
+          </div>
+        ) : stage === "timer" ? (
           <div className="text-center">
             <p className="text-sm text-muted-foreground">{ref?.subject.name} · {ref?.chapter.name}</p>
             <h1 className="mt-2 text-3xl font-semibold">{s.title}</h1>
@@ -87,7 +114,7 @@ function Focus() {
               <div className="flex items-center justify-between"><Label>Do you need revision?</Label><Switch checked={fb.needsRevision} onCheckedChange={(v) => setFb({ ...fb, needsRevision: v })} /></div>
               <div><Label>Notes</Label><Textarea className="mt-1.5" rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} /></div>
             </div>
-            <div className="mt-8 flex gap-3"><Button variant="ghost" onClick={() => setStage("timer")}>Back to timer</Button><Button className="flex-1" onClick={save}>Save session</Button></div>
+            <div className="mt-8 flex gap-3"><Button variant="ghost" onClick={() => setStage("timer")}>Back to timer</Button><Button className="flex-1" onClick={save}>Save & check learning</Button></div>
           </div>
         )}
       </main>

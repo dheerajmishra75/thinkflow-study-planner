@@ -9,6 +9,7 @@ import { SessionItem } from "@/components/app/SessionItem";
 import { SessionDialog } from "@/components/app/SessionDialog";
 import { AdaptivePanel } from "@/components/app/AdaptivePanel";
 import { Button } from "@/components/ui/button";
+import { LearningWidgets } from "@/components/learning/LearningWidgets";
 
 export const Route = createFileRoute("/")({
   head: () => ({ meta: [
@@ -64,6 +65,8 @@ function Dashboard() {
           <Section title="Adaptive suggestions">
             <AdaptivePanel limit={2} />
           </Section>
+
+          <LearningWidgets />
 
           <Section title="Weekly overview" action={<span className="text-xs text-muted-foreground">planned vs completed</span>}>
             <div className="panel flex h-40 items-end gap-3 px-5 pb-4 pt-6">
