@@ -211,3 +211,31 @@ export const generateTopicContent = createServerFn({ method: "POST" })
       return { ok: false as const, status: e instanceof GatewayError ? e.status : 500, error: e instanceof Error ? e.message : "AI request failed." };
     }
   });
+
+const S = { type: "string" };
+const arr = (items: object) => ({ type: "array", items });
+const obj = (props: Record<string, object>) => ({ type: "object", additionalProperties: false, required: Object.keys(props), properties: props });
+const contentJsonSchema = obj({
+  introduction: S, objectives: arr(S), sections: arr(obj({ title: S, body: S })), definitions: arr(obj({ term: S, meaning: S })),
+  examples: arr(S), formulas: arr(S), applications: arr(S), notes: arr(S), importantQuestions: arr(obj({ question: S, answer: S })),
+  questions: arr(obj({ question: S, options: arr(S), correctIndex: { type: "integer" }, explanation: S, difficulty: { type: "string", enum: ["basic", "intermediate", "advanced"] } })),
+});
+export const generateTopicContent = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { subject: string; chapter: string; topic: string }) => {
+    const clean = (v: unknown) => String(v ?? "").trim().slice(0, 200);
+    const r = { subject: clean(d?.subject), chapter: clean(d?.chapter), topic: clean(d?.topic) };
+    if (!r.subject || !r.topic) throw new Error("Choose a topic first.");
+    return r;
+  })
+  .handler(async ({ data }) => {
+    const { gatewayJSON, GatewayError } = await import("@/server/gateway.server");
+    try {
+      const result = await gatewayJSON<unknown>(
+        "You write accurate, exam-oriented study material for B.Tech CSE university students. Stay strictly on the given topic. Produce: introduction, 3-5 objectives, 3-6 explanation sections, definitions, examples, formulas (empty array if none), real-world applications, 5-10 concise short notes, 3-5 important exam questions with answers, and exactly 6 MCQs each with 4 distinct options, exactly one correct option (correctIndex 0-3), an explanation, and a difficulty. Never invent facts.",
+        `Subject: ${data.subject}\nChapter: ${data.chapter}\nTopic: ${data.topic}`, "topic_content", contentJsonSchema);
+      return { ok: true as const, result: JSON.stringify(result) };
+    } catch (e) {
+      return { ok: false as const, status: e instanceof GatewayError ? e.status : 500, error: e instanceof Error ? e.message : "AI request failed." };
+    }
+  });
