@@ -79,13 +79,20 @@ export const useStore = create<State>()(
         const performance = topicPerformance(attempt);
         let subjects = st.subjects;
         for (const result of performance) subjects = mapTopic(subjects, result.topicId, t => updateFromAssessment(t,result.accuracy,st.attempts,today()));
-        const notice: Notice = {id:`assessment:${attempt.id}`,at:attempt.at,text:`Learning check: ${attempt.correct}/${attempt.total} correct (${attempt.accuracy}%). ${performance.filter(p=>p.accuracy<80).length} topic(s) need practice or revision.`,read:false,category:'assessment',target:'progress'};
+        const description = `${attempt.correct}/${attempt.total} correct (${attempt.accuracy}%). ${performance.filter(p=>p.accuracy<80).length} topic(s) need practice or revision.`;
+        const notice: Notice = {id:`assessment:${attempt.id}`,at:attempt.at,title:'Learning check complete',description,text:`Learning check: ${description}`,read:false,category:'assessment',target:'progress'};
         set({subjects,attempts:[...st.attempts,attempt],notices:st.noticePreferences.categories.assessment?mergeNotices(st.notices,[notice]):st.notices});
         return attempt;
       },
       refreshNotices: () => { const st=get();if(!st.profile)return;const incoming=buildNotices(st.subjects,st.sessions,st.profile,st.noticePreferences,new Date());const merged=mergeNotices(st.notices,incoming);if(merged.length!==st.notices.length)set({notices:merged}); },
       readNotice: (id) => set(st=>({notices:st.notices.map(n=>n.id===id?{...n,read:true}:n)})),
-      setNoticePreferences: (noticePreferences) => set({noticePreferences}),
+      setNoticePreferences: (noticePreferences) => {
+        set(st => ({
+          noticePreferences,
+          notices: st.notices.filter(n => !n.category || noticePreferences.categories[n.category]),
+        }));
+        get().refreshNotices();
+      },
       loadDemo: () => {
         const { subjects, sessions, content, attempts, learningProgress } = buildDemo();
         set({ profile: demoProfile, demo: true, subjects, sessions, content, attempts, learningProgress, noticePreferences:defaultPreferences(), adjustments: [], notices: [{ id: uid(), at: new Date().toISOString(), text: "Demo data loaded: 5 subjects, learning resources, assessments and study history.", read: false }] });
